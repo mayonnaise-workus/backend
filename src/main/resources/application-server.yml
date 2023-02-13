@@ -1,11 +1,10 @@
-spring:
-  profiles:
-    active: ${PROFILE}
----
+server:
+  port: 5000
+
 spring:
   config:
     activate:
-      on-profile: local
+      on-profile: server
   mvc:
     pathmatch:
       matching-strategy: ant-path-matcher
