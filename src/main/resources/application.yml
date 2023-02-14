@@ -9,6 +9,23 @@ spring:
   mvc:
     pathmatch:
       matching-strategy: ant-path-matcher
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  h2:
+    console:
+      enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database: mysql
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+    open-in-view: false
+    generate-ddl: true
   output:
     ansi:
       enabled: always
+server:
+  port: 8081
