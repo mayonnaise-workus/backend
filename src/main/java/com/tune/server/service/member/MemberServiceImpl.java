@@ -3,12 +3,13 @@ package com.tune.server.service.member;
 import com.tune.server.domain.Member;
 import com.tune.server.domain.MemberProvider;
 import com.tune.server.dto.kakao.KakaoUserInfo;
-import com.tune.server.enums.ProviderEnum;
+import com.tune.server.exceptions.member.MemberNotFoundException;
 import com.tune.server.repository.MemberProviderRepository;
 import com.tune.server.repository.MemberRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.Optional;
 
 @Service
@@ -19,20 +20,22 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public boolean isExistMember(KakaoUserInfo id) {
-        Optional<MemberProvider> memberProvider = memberProviderRepository.findByIdAndProvider(id.getId(), ProviderEnum.KAKAO);
+        Optional<MemberProvider> memberProvider = memberProviderRepository.findByProviderIdAndAndProvider(id.getId().toString(), "KAKAO");
         return memberProvider.isPresent();
     }
 
     @Override
+    @Transactional
     public boolean signUp(KakaoUserInfo kakaoUserInfo) {
         try {
             Member member = Member.builder()
                     .build();
 
             MemberProvider memberProvider = MemberProvider.builder()
-                    .id(kakaoUserInfo.getId())
+                    .providerId(kakaoUserInfo.getId().toString())
+                    .refreshToken(kakaoUserInfo.getRefreshToken())
                     .member(member)
-                    .provider(ProviderEnum.KAKAO)
+                    .provider("KAKAO")
                     .build();
 
             memberRepository.save(member);
@@ -45,7 +48,7 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public Member getMember(KakaoUserInfo kakaoUserInfo) {
-        Optional<MemberProvider> memberProvider = memberProviderRepository.findByIdAndProvider(kakaoUserInfo.getId(), ProviderEnum.KAKAO);
-        return memberProvider.map(MemberProvider::getMember).orElseThrow(() -> new IllegalArgumentException("해당하는 회원이 없습니다."));
+        Optional<MemberProvider> memberProvider = memberProviderRepository.findByProviderIdAndAndProvider(kakaoUserInfo.getId().toString(), "KAKAO");
+        return memberProvider.map(MemberProvider::getMember).orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
     }
 }

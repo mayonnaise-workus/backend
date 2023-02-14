@@ -3,6 +3,7 @@ package com.tune.server.dto.kakao;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import javax.validation.constraints.NotNull;
 
@@ -19,4 +20,7 @@ public class KakaoUserInfo {
 
     @NotNull
     private int app_id;
+
+    @Setter
+    private String refreshToken;
 }

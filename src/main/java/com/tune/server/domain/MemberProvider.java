@@ -1,13 +1,11 @@
 package com.tune.server.domain;
 
-import com.tune.server.enums.ProviderEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 @Entity
@@ -27,9 +25,11 @@ public class MemberProvider {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "provider")
-    private ProviderEnum provider;
+    private String provider;
+
+    @Column(name = "provider_id")
+    private String providerId;
 
     @Column(name = "refresh_token")
     private String refreshToken;
