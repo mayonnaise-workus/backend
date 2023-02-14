@@ -35,7 +35,7 @@ public class SwaggerConfig extends WebMvcConfigurationSupport {
 
     @Bean
     public Docket swaggerApi() {
-        return new Docket(DocumentationType.SWAGGER_2)
+        return new Docket(DocumentationType.OAS_30)
                 .consumes(getConsumeContentTypes())
                 .produces(getProduceContentTypes())
                 .apiInfo(swaggerInfo()).select()

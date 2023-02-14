@@ -1,5 +1,6 @@
 package com.tune.server.domain;
 
+import com.tune.server.enums.ProviderEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,9 +27,9 @@ public class MemberProvider {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @Size(min = 2, max = 10)
+    @Enumerated(EnumType.STRING)
     @Column(name = "provider")
-    private String provider;
+    private ProviderEnum provider;
 
     @Column(name = "refresh_token")
     private String refreshToken;
