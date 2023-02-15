@@ -27,6 +27,12 @@ public class Member {
     @Column(name = "name")
     private String name;
 
+    @Column(name = "refresh_token")
+    private String refreshToken;
+
+    @Column(name = "refresh_token_expires_at")
+    private LocalDateTime refreshTokenExpiresAt;
+
     @CreatedDate
     @Column(name = "created_at")
     private LocalDateTime createdAt;

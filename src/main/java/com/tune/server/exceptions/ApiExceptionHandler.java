@@ -11,17 +11,4 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 @ControllerAdvice
 public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
-
-        @ExceptionHandler(value = InvalidTokenException.class)
-        public ResponseEntity<ApiErrorResponse> handleException(InvalidTokenException e) {
-            ApiErrorResponse response = new ApiErrorResponse("ERROR-0001", e.getMessage());
-            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
-        }
-
-        @ExceptionHandler(value = KakaoServerException.class)
-        public ResponseEntity<ApiErrorResponse> handleException(KakaoServerException e) {
-            ApiErrorResponse response = new ApiErrorResponse("ERROR-0002", e.getMessage());
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
 }

@@ -7,4 +7,8 @@ public class JwtUtil {
     public static String generateJwt(Member member) {
         return "jwt";
     }
+
+    public static String generateRefreshToken() {
+        return "refreshToken";
+    }
 }

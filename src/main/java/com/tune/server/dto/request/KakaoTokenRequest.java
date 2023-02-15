@@ -20,4 +20,8 @@ public class KakaoTokenRequest {
     @NotNull
     @ApiModelProperty(value = "카카오 access token", required = true)
     private String access_token;
+
+    @NotNull
+    @ApiModelProperty(value = "카카오 access token 만료 시간", required = true)
+    private int expires_in;
 }

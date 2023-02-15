@@ -1,13 +1,13 @@
 package com.tune.server.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tune.server.filter.ExceptionHandlerFilter;
 import com.tune.server.filter.KakaoLoginFilter;
 import com.tune.server.service.member.MemberService;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.web.DefaultSecurityFilterChain;
@@ -23,31 +23,30 @@ public class SecurityConfig {
     private final MemberService memberService;
 
     @Bean
-    WebSecurityCustomizer webSecurityCustomizer() {
-        return new WebSecurityCustomizer() {
-            @Override
-            public void customize(WebSecurity web) {
-                web.ignoring().antMatchers(
-                    "/swagger-ui.html",
-                    "/swagger-ui/**",
-                    "/v3/api-docs/**",
-                    "/swagger-resources/**",
-                    "/h2-console/**"
-                );
-            }
-        };
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return web -> web.ignoring().antMatchers(
+                "/",
+                "/swagger-ui.html",
+                "/swagger-ui/**",
+                "/v3/api-docs/**",
+                "/swagger-resources/**",
+                "/h2-console/**"
+        );
     }
 
     @Bean
     protected DefaultSecurityFilterChain configure(HttpSecurity http) throws Exception {
         return http
-            .cors().disable()
-            .csrf().disable()
-            .authorizeRequests()
-            .anyRequest().permitAll()
-            .and()
-            .addFilterBefore(new KakaoLoginFilter("/login/kakao", objectMapper, memberService), UsernamePasswordAuthenticationFilter.class)
-            .build();
+                .cors().disable()
+                .csrf().disable()
+                .authorizeRequests()
+                .anyRequest().permitAll()
+                .and()
+                .addFilterBefore(new KakaoLoginFilter("/login/kakao", objectMapper, memberService), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new ExceptionHandlerFilter(), KakaoLoginFilter.class)
+                .build();
     }
+
+
 
 }

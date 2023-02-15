@@ -6,20 +6,13 @@ import com.tune.server.domain.Member;
 import com.tune.server.dto.kakao.KakaoError;
 import com.tune.server.dto.kakao.KakaoUserInfo;
 import com.tune.server.dto.request.KakaoTokenRequest;
+import com.tune.server.dto.response.FullTokenResponse;
 import com.tune.server.exceptions.login.InvalidTokenException;
 import com.tune.server.exceptions.login.KakaoServerException;
 import com.tune.server.service.member.MemberService;
 import com.tune.server.util.JwtUtil;
-import io.swagger.annotations.*;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.TransactionException;
+import org.springframework.http.*;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -32,16 +25,7 @@ import java.io.IOException;
 import java.util.Random;
 
 
-@ApiOperation(value = "Login", notes = "Authenticate user by login and password")
-@ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Successfully authenticated"),
-        @ApiResponse(code = 401, message = "Invalid credentials")
-})
-@ApiImplicitParams({
-        @ApiImplicitParam(name = "Authorization", value = "Basic authentication credentials", required = true, dataType = "string", paramType = "header")
-})
-@RequestMapping(value = "/login", method = RequestMethod.POST)
-@SecurityRequirement(name = "basicAuth")
+
 public class KakaoLoginFilter extends OncePerRequestFilter {
     private final String SIGNUP_URI;
     private final String KAKAO_USER_INFO_URL = "https://kapi.kakao.com/v1/user/access_token_info";
@@ -56,43 +40,47 @@ public class KakaoLoginFilter extends OncePerRequestFilter {
     }
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        try {
-            if (SIGNUP_URI.equals(request.getRequestURI()) && request.getMethod().equals("POST")) {
-                KakaoTokenRequest kakaoTokenRequest = objectMapper.readValue(request.getInputStream(), KakaoTokenRequest.class);
-                String refreshToken = kakaoTokenRequest.getRefresh_token();
-                String accessToken = kakaoTokenRequest.getAccess_token();
+        if (SIGNUP_URI.equals(request.getRequestURI()) && request.getMethod().equals("POST")) {
+            KakaoTokenRequest kakaoTokenRequest = objectMapper.readValue(request.getInputStream(), KakaoTokenRequest.class);
+            String refreshToken = kakaoTokenRequest.getRefresh_token();
+            String accessToken = kakaoTokenRequest.getAccess_token();
 
-                // 1. 카카오 토큰으로 회원 정보 조회
-                // KakaoUserInfo kakaoUserInfo = getKaKaoUserInfo(accessToken);
-                // 1-1. Mock KakaoUserInfo
-                KakaoUserInfo kakaoUserInfo = KakaoUserInfo.builder()
-                        .app_id(new Random().nextInt(1000000000))
-                        .id((long) new Random().nextInt(1000000000))
-                        .expires_in(1000000000)
-                        .build();
-                kakaoUserInfo.setRefreshToken(refreshToken);
+            // 1. 카카오 토큰으로 회원 정보 조회
+            // KakaoUserInfo kakaoUserInfo = getKaKaoUserInfo(accessToken);
 
-                // 2. 회원 정보로 로그인/회원가입 처리
-                if (!memberService.isExistMember(kakaoUserInfo)) {
-                    // 회원가입 처리
-                    if (!memberService.signUp(kakaoUserInfo)) {
-                        throw new InternalError("회원가입에 실패했습니다.");
-                    }
+            // 1-1. Mock KakaoUserInfo
+            KakaoUserInfo kakaoUserInfo = KakaoUserInfo.builder()
+                            .app_id(new Random().nextInt(1000000000))
+                            .id((long) new Random().nextInt(1000000000))
+                            .expires_in(1000000000)
+                    .build();
+
+            kakaoUserInfo.setRefreshToken(refreshToken);
+
+
+            // 2. 회원 정보로 로그인/회원가입 처리
+            if (!memberService.isExistMember(kakaoUserInfo)) {
+                // 회원가입 처리
+                if (!memberService.signUp(kakaoUserInfo)) {
+                    throw new InternalError("회원가입에 실패했습니다.");
                 }
-
-                // 3. JWT 토큰 발급
-                Member member = memberService.getMember(kakaoUserInfo);
-                String jwtToken = JwtUtil.generateJwt(member);
-
-                // 4. 응답
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-                response.getWriter().write(objectMapper.writeValueAsString(jwtToken));
-                return;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+
+            // 3. JWT 토큰 발급
+            Member member = memberService.getMember(kakaoUserInfo);
+            FullTokenResponse fullTokenResponse = FullTokenResponse
+                    .builder()
+                    .access_token(JwtUtil.generateJwt(member))
+                    .refresh_token(member.getRefreshToken())
+                    .build();
+
+            // 4. 응답
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write(objectMapper.writeValueAsString(fullTokenResponse));
+            return;
         }
+
 
         filterChain.doFilter(request, response);
     }

@@ -6,10 +6,12 @@ import com.tune.server.dto.kakao.KakaoUserInfo;
 import com.tune.server.exceptions.member.MemberNotFoundException;
 import com.tune.server.repository.MemberProviderRepository;
 import com.tune.server.repository.MemberRepository;
+import com.tune.server.util.JwtUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -28,7 +30,10 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public boolean signUp(KakaoUserInfo kakaoUserInfo) {
         try {
-            Member member = Member.builder()
+            Member member = Member
+                    .builder()
+                    .refreshToken(JwtUtil.generateRefreshToken())
+                    .refreshTokenExpiresAt(LocalDateTime.now().plusMonths(6))
                     .build();
 
             MemberProvider memberProvider = MemberProvider.builder()
