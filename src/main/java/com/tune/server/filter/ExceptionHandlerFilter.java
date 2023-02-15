@@ -28,6 +28,7 @@ public class ExceptionHandlerFilter extends OncePerRequestFilter {
             errorResponse.put("message", e.getMessage());
             errorResponse.put("status", e.getStatus());
 
+            response.setStatus(e.getStatus());
             response.setHeader("Content-Type", "application/json; charset=utf-8");
             response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
         }

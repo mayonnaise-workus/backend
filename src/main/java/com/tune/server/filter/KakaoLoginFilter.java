@@ -9,6 +9,7 @@ import com.tune.server.dto.request.KakaoTokenRequest;
 import com.tune.server.dto.response.FullTokenResponse;
 import com.tune.server.exceptions.login.InvalidTokenException;
 import com.tune.server.exceptions.login.KakaoServerException;
+import com.tune.server.exceptions.login.TokenNotFoundException;
 import com.tune.server.service.member.MemberService;
 import com.tune.server.util.JwtUtil;
 import org.springframework.http.*;
@@ -41,7 +42,7 @@ public class KakaoLoginFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         if (SIGNUP_URI.equals(request.getRequestURI()) && request.getMethod().equals("POST")) {
-            KakaoTokenRequest kakaoTokenRequest = objectMapper.readValue(request.getInputStream(), KakaoTokenRequest.class);
+            KakaoTokenRequest kakaoTokenRequest = getKakaoToken(request);
             String refreshToken = kakaoTokenRequest.getRefresh_token();
             String accessToken = kakaoTokenRequest.getAccess_token();
 
@@ -83,6 +84,19 @@ public class KakaoLoginFilter extends OncePerRequestFilter {
 
 
         filterChain.doFilter(request, response);
+    }
+
+    private KakaoTokenRequest getKakaoToken(HttpServletRequest request) {
+        try {
+            KakaoTokenRequest kakaoTokenRequest = objectMapper.readValue(request.getInputStream(), KakaoTokenRequest.class);
+            if (kakaoTokenRequest.getAccess_token() == null || kakaoTokenRequest.getRefresh_token() == null) {
+                throw new TokenNotFoundException("access_token 또는 refresh_token이 없습니다.");
+            }
+
+            return kakaoTokenRequest;
+        } catch (IOException e) {
+            throw new TokenNotFoundException("카카오 토큰을 조회하는 중에 오류가 발생했습니다.");
+        }
     }
 
     private KakaoUserInfo getKaKaoUserInfo(String accessToken) throws JsonProcessingException {

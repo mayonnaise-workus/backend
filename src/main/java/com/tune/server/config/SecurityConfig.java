@@ -2,6 +2,7 @@ package com.tune.server.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tune.server.filter.ExceptionHandlerFilter;
+import com.tune.server.filter.JwtAuthenticationFilter;
 import com.tune.server.filter.KakaoLoginFilter;
 import com.tune.server.service.member.MemberService;
 import lombok.AllArgsConstructor;
@@ -30,7 +31,8 @@ public class SecurityConfig {
                 "/swagger-ui/**",
                 "/v3/api-docs/**",
                 "/swagger-resources/**",
-                "/h2-console/**"
+                "/h2-console/**",
+                "/"
         );
     }
 
@@ -39,11 +41,12 @@ public class SecurityConfig {
         return http
                 .cors().disable()
                 .csrf().disable()
-                .authorizeRequests()
-                .anyRequest().permitAll()
-                .and()
+                .formLogin().disable()
+                .authorizeRequests().antMatchers("/login/**").authenticated().and()
                 .addFilterBefore(new KakaoLoginFilter("/login/kakao", objectMapper, memberService), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new ExceptionHandlerFilter(), KakaoLoginFilter.class)
+                .authorizeRequests().antMatchers("/member/**").authenticated().and()
+                .addFilterAfter(new JwtAuthenticationFilter(objectMapper, memberService), KakaoLoginFilter.class)
                 .build();
     }
 

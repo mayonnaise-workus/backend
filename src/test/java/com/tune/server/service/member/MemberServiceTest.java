@@ -3,7 +3,6 @@ package com.tune.server.service.member;
 import com.tune.server.domain.Member;
 import com.tune.server.domain.MemberProvider;
 import com.tune.server.dto.kakao.KakaoUserInfo;
-import com.tune.server.enums.ProviderEnum;
 import com.tune.server.repository.MemberProviderRepository;
 import com.tune.server.repository.MemberRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -44,7 +43,7 @@ class MemberServiceTest {
         // when
         MemberProvider memberProvider = MemberProvider.builder()
                 .id(kakaoUserInfo.getId())
-                .provider(ProviderEnum.KAKAO)
+                .provider("KAKAO")
                 .build();
         memberProviderRepository.save(memberProvider);
 

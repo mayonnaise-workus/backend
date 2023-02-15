@@ -29,3 +29,7 @@ spring:
       enabled: always
 server:
   port: 8081
+
+external:
+  jwt:
+    secret: ${JWT_SECRET}
