@@ -18,7 +18,11 @@ import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.AuthorizationScope;
+import springfox.documentation.service.HttpAuthenticationScheme;
+import springfox.documentation.service.SecurityReference;
 import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spi.service.contexts.SecurityContext;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
@@ -27,6 +31,8 @@ import java.util.*;
 @Configuration
 @EnableSwagger2
 public class SwaggerConfig extends WebMvcConfigurationSupport {
+    private static final String REFERENCE = "Bearer ";
+
 
     private ApiInfo swaggerInfo() {
         return new ApiInfoBuilder().title("TUNE API Docs")
@@ -42,7 +48,9 @@ public class SwaggerConfig extends WebMvcConfigurationSupport {
                 .apis(RequestHandlerSelectors.basePackage("com.tune.server.controller"))
                 .paths(PathSelectors.any())
                 .build()
-                .useDefaultResponseMessages(false);
+                .useDefaultResponseMessages(false)
+                .securityContexts(List.of(securityContext()))
+                .securitySchemes(List.of(bearerAuthSecurityScheme()));
     }
 
     private Set<String> getConsumeContentTypes() {
@@ -80,5 +88,26 @@ public class SwaggerConfig extends WebMvcConfigurationSupport {
 
     private boolean shouldRegisterLinksMapping(WebEndpointProperties webEndpointProperties, Environment environment, String basePath) {
         return webEndpointProperties.getDiscovery().isEnabled() && (StringUtils.hasText(basePath) || ManagementPortType.get(environment).equals(ManagementPortType.DIFFERENT));
+    }
+
+    private SecurityContext securityContext() {
+        return springfox.documentation
+                .spi.service.contexts
+                .SecurityContext.builder()
+                .securityReferences(defaultAuth())
+                .operationSelector(operationContext -> true)
+                .build();
+    }
+
+    private List<SecurityReference> defaultAuth() {
+        AuthorizationScope[] authorizationScopes = new AuthorizationScope[1];
+        authorizationScopes[0] = new AuthorizationScope("global", "accessEverything");
+        return List.of(new SecurityReference(REFERENCE, authorizationScopes));
+    }
+
+    private HttpAuthenticationScheme bearerAuthSecurityScheme() {
+        return HttpAuthenticationScheme.JWT_BEARER_BUILDER
+                .name(REFERENCE)
+                .build();
     }
 }
