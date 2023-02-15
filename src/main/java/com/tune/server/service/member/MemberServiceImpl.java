@@ -33,7 +33,7 @@ public class MemberServiceImpl implements MemberService {
             Member member = Member
                     .builder()
                     .refreshToken(JwtUtil.generateRefreshToken())
-                    .refreshTokenExpiresAt(LocalDateTime.now().plusMonths(6))
+                    .refreshTokenExpiresAt(LocalDateTime.now().plusMonths(JwtUtil.REFRESH_TOKEN_EXPIRES_MONTH))
                     .build();
 
             MemberProvider memberProvider = MemberProvider.builder()
