@@ -5,6 +5,7 @@ import com.tune.server.domain.MemberProvider;
 import com.tune.server.dto.MemberAuthDto;
 import com.tune.server.dto.kakao.KakaoUserInfo;
 import com.tune.server.dto.request.MemberAgreementRequest;
+import com.tune.server.dto.request.MemberNameRequest;
 import com.tune.server.exceptions.login.TokenExpiredException;
 import com.tune.server.exceptions.member.InvalidRequestException;
 import com.tune.server.exceptions.member.MemberNotFoundException;
@@ -101,5 +102,21 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public Member getInfo(MemberAuthDto member) {
         return memberRepository.findById(member.getId()).orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
+    }
+
+    @Override
+    public Member updateName(MemberAuthDto principal, MemberNameRequest request) {
+        Member member = memberRepository.findById(principal.getId()).orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
+
+        if (request.getName() == null) {
+            throw new InvalidRequestException("필수 파라미터가 누락되었습니다.");
+        } else if (request.getName().length() > 10) {
+            throw new InvalidRequestException("이름은 10자 이하로 입력해주세요.");
+        } else if (memberRepository.findByName(request.getName()).isPresent()) {
+            throw new InvalidRequestException("이미 존재하는 이름입니다.");
+        }
+
+        member.setName(request.getName());
+        return memberRepository.save(member);
     }
 }

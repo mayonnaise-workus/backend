@@ -5,6 +5,7 @@ import com.tune.server.domain.MemberProvider;
 import com.tune.server.dto.MemberAuthDto;
 import com.tune.server.dto.kakao.KakaoUserInfo;
 import com.tune.server.dto.request.MemberAgreementRequest;
+import com.tune.server.dto.request.MemberNameRequest;
 import com.tune.server.exceptions.login.TokenExpiredException;
 import com.tune.server.exceptions.member.InvalidRequestException;
 import com.tune.server.exceptions.member.MemberNotFoundException;
@@ -227,7 +228,6 @@ class MemberServiceTest {
     void agreeTerms2() {
         // given
         Member member = Member.builder()
-                .id(99L)
                 .build();
         MemberAgreementRequest memberAgreementRequest = MemberAgreementRequest.builder()
                 .marketing_agreement(true)
@@ -242,5 +242,45 @@ class MemberServiceTest {
         assertEquals(99L, member.getId());
         assertTrue(member.getMarketingAgreement());
         assertFalse(member.getPersonalInformationAgreement());
+    }
+
+    @Test
+    @DisplayName("유저 닉네임 설정 - 닉네임이 중복되면 400 에러 반환")
+    void setNickname() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+
+        Member member2 = memberRepository.save(Member.builder()
+                .build());
+
+        // when & then
+        memberService.updateName(new MemberAuthDto(member.getId()), new MemberNameRequest("nickname"));
+        assertThrows(InvalidRequestException.class, () -> memberService.updateName(new MemberAuthDto(member2.getId()), new MemberNameRequest("nickname")));
+    }
+
+    @Test
+    @DisplayName("유저 닉네임 설정 - 최대 10자 이하로 설정 가능, 아니면 400 에러 반환")
+    void setNickname2() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+
+        // when & then
+        assertThrows(InvalidRequestException.class, () -> memberService.updateName(new MemberAuthDto(member.getId()), new MemberNameRequest("nickname1234567890")));
+    }
+
+    @Test
+    @DisplayName("유저 닉네임 설정 - 성공시 Member 업데이트")
+    void setNickname3() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+        // when
+        member = memberService.updateName(new MemberAuthDto(member.getId()), new MemberNameRequest("nickname"));
+
+        // then
+        assertEquals(member.getId(), member.getId());
+        assertEquals("nickname", member.getName());
     }
 }

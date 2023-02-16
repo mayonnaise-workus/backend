@@ -1,15 +1,13 @@
 package com.tune.server.dto.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 
 import javax.validation.constraints.NotNull;
 
 @Getter
 @Builder
 @ToString
+@NoArgsConstructor
 @AllArgsConstructor
 public class MemberAgreementRequest {
 

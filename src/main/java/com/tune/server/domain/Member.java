@@ -24,6 +24,7 @@ public class Member {
     @Column(name = "id")
     private Long id;
 
+    @Setter
     @Size(min = 2, max = 10)
     @Column(name = "name")
     private String name;

@@ -1,0 +1,14 @@
+package com.tune.server.dto.request;
+
+import lombok.*;
+
+import javax.validation.constraints.Size;
+
+@Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString
+public class MemberNameRequest {
+    private String name;
+}
