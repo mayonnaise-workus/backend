@@ -1,5 +1,6 @@
 package com.tune.server.domain;
 
+import io.micrometer.core.lang.Nullable;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -28,6 +29,14 @@ public class Member {
     private String name;
 
     @Setter
+    @Column(name = "marketing_agreement")
+    private Boolean marketingAgreement;
+
+    @Setter
+    @Column(name = "personal_information_agreement")
+    private Boolean personalInformationAgreement;
+
+    @Setter
     @Column(name = "refresh_token")
     private String refreshToken;
 
@@ -36,7 +45,7 @@ public class Member {
     private LocalDateTime refreshTokenExpiresAt;
 
     @CreatedDate
-    @Column(name = "created_at")
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate

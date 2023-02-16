@@ -2,8 +2,11 @@ package com.tune.server.service.member;
 
 import com.tune.server.domain.Member;
 import com.tune.server.domain.MemberProvider;
+import com.tune.server.dto.MemberAuthDto;
 import com.tune.server.dto.kakao.KakaoUserInfo;
+import com.tune.server.dto.request.MemberAgreementRequest;
 import com.tune.server.exceptions.login.TokenExpiredException;
+import com.tune.server.exceptions.member.InvalidRequestException;
 import com.tune.server.exceptions.member.MemberNotFoundException;
 import com.tune.server.repository.MemberProviderRepository;
 import com.tune.server.repository.MemberRepository;
@@ -81,5 +84,22 @@ public class MemberServiceImpl implements MemberService {
         tokenMap.put("access_token", JwtUtil.generateJwt(member));
 
         return tokenMap;
+    }
+
+    @Override
+    public Member updateAgreement(MemberAuthDto member, MemberAgreementRequest request) {
+        if (request.getMarketing_agreement() == null || request.getPersonal_information_agreement() == null) {
+            throw new InvalidRequestException("필수 파라미터가 누락되었습니다.");
+        }
+
+        Member memberEntity = memberRepository.findById(member.getId()).orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
+        memberEntity.setMarketingAgreement(request.getMarketing_agreement());
+        memberEntity.setPersonalInformationAgreement(request.getPersonal_information_agreement());
+        return memberRepository.save(memberEntity);
+    }
+
+    @Override
+    public Member getInfo(MemberAuthDto member) {
+        return memberRepository.findById(member.getId()).orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
     }
 }

@@ -2,6 +2,7 @@ package com.tune.server.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tune.server.domain.Member;
+import com.tune.server.dto.MemberAuthDto;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,14 +32,14 @@ public class JwtUtil {
         JWT_SECRET_KEY = key;
     }
 
-    public static Member getMemberFromJwt(String token, ObjectMapper objectMapper) {
+    public static MemberAuthDto getMemberFromJwt(String token, ObjectMapper objectMapper) {
         Map<String, Object> claims = Jwts.parserBuilder()
                 .setSigningKey(JWT_SECRET_KEY)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
 
-        return objectMapper.convertValue(claims, Member.class);
+        return objectMapper.convertValue(claims, MemberAuthDto.class);
     }
 
     public static String generateJwt(Member member) {
@@ -47,7 +48,6 @@ public class JwtUtil {
 
         Map<String, Object> claims = new HashMap<>();
         claims.put("id", member.getId());
-        claims.put("name", member.getName());
 
         return Jwts.builder()
                 .setClaims(claims)

@@ -2,8 +2,11 @@ package com.tune.server.service.member;
 
 import com.tune.server.domain.Member;
 import com.tune.server.domain.MemberProvider;
+import com.tune.server.dto.MemberAuthDto;
 import com.tune.server.dto.kakao.KakaoUserInfo;
+import com.tune.server.dto.request.MemberAgreementRequest;
 import com.tune.server.exceptions.login.TokenExpiredException;
+import com.tune.server.exceptions.member.InvalidRequestException;
 import com.tune.server.exceptions.member.MemberNotFoundException;
 import com.tune.server.repository.MemberProviderRepository;
 import com.tune.server.repository.MemberRepository;
@@ -195,4 +198,49 @@ class MemberServiceTest {
         assertThrows(TokenExpiredException.class, () -> memberService.refresh("refresh_token"));
     }
 
+    @Test
+    @DisplayName("약관 동의 테스트 - 어떠한 매개변수라도 null이면 400 에러 반환")
+    void agreeTerms() {
+        // given
+        Member member = Member.builder()
+                .id(99L)
+                .build();
+        MemberAgreementRequest memberAgreementRequest = MemberAgreementRequest.builder()
+                .build();
+        MemberAgreementRequest memberAgreementRequest2 = MemberAgreementRequest.builder()
+                .marketing_agreement(true)
+                .build();
+        MemberAgreementRequest memberAgreementRequest3 = MemberAgreementRequest.builder()
+                .personal_information_agreement(true)
+                .build();
+        memberRepository.save(member);
+
+        // when & then
+        assertThrows(InvalidRequestException.class, () -> memberService.updateAgreement(new MemberAuthDto(99L), memberAgreementRequest));
+        assertThrows(InvalidRequestException.class, () -> memberService.updateAgreement(new MemberAuthDto(99L), memberAgreementRequest2));
+        assertThrows(InvalidRequestException.class, () -> memberService.updateAgreement(new MemberAuthDto(99L), memberAgreementRequest3));
+    }
+
+
+    @Test
+    @DisplayName("약관 동의 테스트 - 요청된 값을 기반으로 Member를 업데이트 한다")
+    void agreeTerms2() {
+        // given
+        Member member = Member.builder()
+                .id(99L)
+                .build();
+        MemberAgreementRequest memberAgreementRequest = MemberAgreementRequest.builder()
+                .marketing_agreement(true)
+                .personal_information_agreement(false)
+                .build();
+        memberRepository.save(member);
+
+        // when
+        member = memberService.updateAgreement(new MemberAuthDto(99L), memberAgreementRequest);
+
+        // then
+        assertEquals(99L, member.getId());
+        assertTrue(member.getMarketingAgreement());
+        assertFalse(member.getPersonalInformationAgreement());
+    }
 }

@@ -2,6 +2,7 @@ package com.tune.server.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tune.server.domain.Member;
+import com.tune.server.dto.MemberAuthDto;
 import com.tune.server.exceptions.login.InvalidTokenException;
 import com.tune.server.exceptions.login.TokenExpiredException;
 import com.tune.server.exceptions.login.TokenNotFoundException;
@@ -47,7 +48,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throw new TokenExpiredException("JWT Token is expired");
 
         // Member 식별
-        Member member = JwtUtil.getMemberFromJwt(token, objectMapper);
+        MemberAuthDto member = JwtUtil.getMemberFromJwt(token, objectMapper);
 
         // 권한 부여
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(member, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
