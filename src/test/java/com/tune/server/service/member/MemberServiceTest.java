@@ -3,16 +3,22 @@ package com.tune.server.service.member;
 import com.tune.server.domain.Member;
 import com.tune.server.domain.MemberProvider;
 import com.tune.server.dto.kakao.KakaoUserInfo;
+import com.tune.server.exceptions.login.TokenExpiredException;
+import com.tune.server.exceptions.member.MemberNotFoundException;
 import com.tune.server.repository.MemberProviderRepository;
 import com.tune.server.repository.MemberRepository;
+import com.tune.server.util.JwtUtil;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -29,26 +35,31 @@ class MemberServiceTest {
     @Autowired
     private MemberService memberService;
 
-
+    @BeforeAll
+    static void beforeAll() {
+        JwtUtil.JWT_SECRET_KEY = "Jo73VnKMoZCBEgBloGffXFTDsZxRZ9fN5geXS3nX0wE";
+    }
     @Test
     @DisplayName("소셜 로그인 ID로 회원이 존재하는지 확인하는 테스트 - 존재")
     void isExistMember_success() {
         // given
-        KakaoUserInfo kakaoUserInfo = KakaoUserInfo.builder()
-                .id(1L)
-                .expires_in(1)
-                .app_id(1)
+        Member member = Member.builder()
+                .name("test")
                 .build();
-
-        // when
         MemberProvider memberProvider = MemberProvider.builder()
-                .id(kakaoUserInfo.getId())
+                .member(member)
+                .providerId("99")
                 .provider("KAKAO")
                 .build();
+        memberRepository.save(member);
         memberProviderRepository.save(memberProvider);
 
-        // then
-        assertTrue(memberService.isExistMember(kakaoUserInfo));
+        // when & then
+        assertTrue(memberService.isExistMember(KakaoUserInfo.builder()
+                .id(99L)
+                .app_id(99)
+                .expires_in(1)
+                .build()));
     }
 
     @Test
@@ -122,4 +133,66 @@ class MemberServiceTest {
         // then
         assertNotNull(member);
     }
+
+    @Test
+    @DisplayName("토큰 갱신 테스트 - refresh_token이 존재하지 않으면 404 에러 반환")
+    void refresh() {
+        // given
+        String refreshToken = "refresh_token";
+
+        // when & when
+        assertThrows(MemberNotFoundException.class, () -> memberService.refresh(refreshToken));
+    }
+
+    @Test
+    @DisplayName("토큰 갱신 테스트 - refresh_token이 존재하고 만료까지 1달 이상 남았다면 access_token 토큰 갱신")
+    void refresh2() {
+        // given
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime expiresAt = now.plusDays(60);
+        memberRepository.save(Member.builder()
+                .refreshToken("refresh_token")
+                .refreshTokenExpiresAt(expiresAt)
+                .build());
+
+        // when
+        Map<String, String> result = memberService.refresh("refresh_token");
+
+        // then
+        assertNotNull(result.get("access_token"));
+        assertNull(result.get("refresh_token"));
+    }
+
+    @Test
+    @DisplayName("토큰 갱신 테스트 - refresh_token이 존재하고 만료까지 1달 미만 남았다면 refresh_token과 access_token 토큰 갱신")
+    void refresh3() {
+        // given
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime expiresAt = now.plusDays(15);
+        memberRepository.save(Member.builder()
+                .refreshToken("refresh_token")
+                .refreshTokenExpiresAt(expiresAt)
+                .build());
+
+        // when
+        Map<String, String> result = memberService.refresh("refresh_token");
+
+        // then
+        assertNotNull(result.get("access_token"));
+        assertNotNull(result.get("refresh_token"));
+    }
+
+    @Test
+    @DisplayName("토큰 갱신 테스트 - refresh_token이 만료되었다면 401 에러 반환")
+    void refresh4() {
+        // given
+        memberRepository.save(Member.builder()
+                .refreshToken("refresh_token")
+                .refreshTokenExpiresAt(LocalDateTime.of(2021, 12, 31, 0, 0, 0))
+                .build());
+
+        // when & then
+        assertThrows(TokenExpiredException.class, () -> memberService.refresh("refresh_token"));
+    }
+
 }

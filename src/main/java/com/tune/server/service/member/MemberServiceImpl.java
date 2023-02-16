@@ -3,6 +3,7 @@ package com.tune.server.service.member;
 import com.tune.server.domain.Member;
 import com.tune.server.domain.MemberProvider;
 import com.tune.server.dto.kakao.KakaoUserInfo;
+import com.tune.server.exceptions.login.TokenExpiredException;
 import com.tune.server.exceptions.member.MemberNotFoundException;
 import com.tune.server.repository.MemberProviderRepository;
 import com.tune.server.repository.MemberRepository;
@@ -12,6 +13,10 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -55,5 +60,26 @@ public class MemberServiceImpl implements MemberService {
     public Member getMember(KakaoUserInfo kakaoUserInfo) {
         Optional<MemberProvider> memberProvider = memberProviderRepository.findByProviderIdAndAndProvider(kakaoUserInfo.getId().toString(), "KAKAO");
         return memberProvider.map(MemberProvider::getMember).orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
+    }
+
+    @Override
+    public Map<String, String> refresh(String refreshToken) {
+        Member member = memberRepository.findByRefreshToken(refreshToken).orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
+        if (member.getRefreshTokenExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new TokenExpiredException("만료된 토큰입니다.");
+        }
+
+        Map<String, String> tokenMap = new HashMap<>();
+        Date nextMonth = Date.from(LocalDateTime.now().plusMonths(1).atZone(ZoneId.of("Asia/Seoul")).toInstant());
+        // 1개월 미만 남은 경우 refresh_token 을 추가한다.
+        if (member.getRefreshTokenExpiresAt().isBefore(LocalDateTime.ofInstant(nextMonth.toInstant(), ZoneId.of("Asia/Seoul")))) {
+            member.setRefreshToken(JwtUtil.generateRefreshToken());
+            member.setRefreshTokenExpiresAt(LocalDateTime.now().plusMonths(JwtUtil.REFRESH_TOKEN_EXPIRES_MONTH));
+            tokenMap.put("refresh_token", member.getRefreshToken());
+        }
+
+        tokenMap.put("access_token", JwtUtil.generateJwt(member));
+
+        return tokenMap;
     }
 }

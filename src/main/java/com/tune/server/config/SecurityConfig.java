@@ -31,8 +31,7 @@ public class SecurityConfig {
                 "/swagger-ui/**",
                 "/v3/api-docs/**",
                 "/swagger-resources/**",
-                "/h2-console/**",
-                "/"
+                "/h2-console/**"
         );
     }
 
@@ -42,10 +41,13 @@ public class SecurityConfig {
                 .cors().disable()
                 .csrf().disable()
                 .formLogin().disable()
-                .authorizeRequests().antMatchers("/login/**").authenticated().and()
+                .authorizeRequests()
+                    .antMatchers("/refresh").permitAll()
+                    .antMatchers("/login/**").authenticated()
+                    .antMatchers("/member/**").authenticated()
+                .and()
                 .addFilterBefore(new KakaoLoginFilter("/login/kakao", objectMapper, memberService), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new ExceptionHandlerFilter(), KakaoLoginFilter.class)
-                .authorizeRequests().antMatchers("/member/**").authenticated().and()
                 .addFilterAfter(new JwtAuthenticationFilter(objectMapper, memberService), KakaoLoginFilter.class)
                 .build();
     }
