@@ -44,61 +44,52 @@ class MemberServiceTest {
         JwtUtil.JWT_SECRET_KEY = "Jo73VnKMoZCBEgBloGffXFTDsZxRZ9fN5geXS3nX0wE";
     }
     @Test
-    @DisplayName("소셜 로그인 ID로 회원이 존재하는지 확인하는 테스트 - 존재")
+    @DisplayName("회원가입 테스트 - 이미 존재하는 회원인 경우 회원가입을 진행하지 않고, 기존에 존재하는 정보를 되돌려준다.")
     void isExistMember_success() {
         // given
-        Member member = Member.builder()
+        Member member = memberRepository.save(Member.builder()
                 .name("test")
-                .build();
+                .build());
+
         MemberProvider memberProvider = MemberProvider.builder()
                 .member(member)
                 .providerId("99")
                 .provider("KAKAO")
                 .build();
-        memberRepository.save(member);
-        memberProviderRepository.save(memberProvider);
 
-        // when & then
-        assertTrue(memberService.isExistMember(KakaoUserInfo.builder()
-                .id(99L)
+        // when
+        memberService.signUp(KakaoUserInfo.builder()
                 .app_id(99)
                 .expires_in(1)
-                .build()));
+                .build());
+
+
+        // then
+        assertEquals(1, memberRepository.count());
     }
 
     @Test
-    @DisplayName("소셜 로그인 ID로 회원이 존재하는지 확인하는 테스트 - 존재하지 않음")
+    @DisplayName("회원가입 테스트 - 카카오를 통하여 회원가입을 진행한다.")
     void isExistMember_fail() {
-        // given
-        KakaoUserInfo kakaoUserInfo = KakaoUserInfo.builder()
-                .id(99L)
-                .expires_in(1)
-                .app_id(1)
-                .build();
-
-        // then & when
-        assertFalse(memberService.isExistMember(kakaoUserInfo));
-    }
-
-    @Test
-    @DisplayName("회원가입 테스트")
-    void signUp() {
         // given
         KakaoUserInfo kakaoUserInfo = KakaoUserInfo.builder()
                 .id(1L)
                 .expires_in(1)
-                .app_id(1)
+                .refreshToken("test")
+                .app_id(99)
                 .build();
 
         // when
-        boolean result = memberService.signUp(kakaoUserInfo);
+        boolean status = memberService.signUp(kakaoUserInfo);
 
         // then
-        assertTrue(result);
+        assertTrue(status);
+        assertEquals(1, memberRepository.count());
+        assertEquals(1, memberProviderRepository.count());
     }
 
     @Test
-    @DisplayName("회원가입 테스트 - 10명")
+    @DisplayName("회원가입 테스트 - 10명의 유저가 카카오로 회원 가입을 시도한다.")
     void signUp_10() {
         // given
         List<KakaoUserInfo> kakaoUserInfoList = new ArrayList<>();
@@ -121,7 +112,7 @@ class MemberServiceTest {
     }
 
     @Test
-    @DisplayName("카카오 유저 정보로 회원 정보를 가져오는 테스트")
+    @DisplayName("회원 조회 테스트 - 카카오 유저의 정보를 조회한다.")
     void getMember() {
         // given
         KakaoUserInfo kakaoUserInfo = KakaoUserInfo.builder()
@@ -139,7 +130,7 @@ class MemberServiceTest {
     }
 
     @Test
-    @DisplayName("토큰 갱신 테스트 - refresh_token이 존재하지 않으면 404 에러 반환")
+    @DisplayName("토큰 갱신 테스트 - refresh_token이 존재하지 않으면 404 에러를 반환한다.")
     void refresh() {
         // given
         String refreshToken = "refresh_token";
@@ -149,7 +140,7 @@ class MemberServiceTest {
     }
 
     @Test
-    @DisplayName("토큰 갱신 테스트 - refresh_token이 존재하고 만료까지 1달 이상 남았다면 access_token 토큰 갱신")
+    @DisplayName("토큰 갱신 테스트 - refresh_token이 존재하고 만료까지 1달 이상 남았다면 access_token 토큰 갱신한다.")
     void refresh2() {
         // given
         LocalDateTime now = LocalDateTime.now();
@@ -168,7 +159,7 @@ class MemberServiceTest {
     }
 
     @Test
-    @DisplayName("토큰 갱신 테스트 - refresh_token이 존재하고 만료까지 1달 미만 남았다면 refresh_token과 access_token 토큰 갱신")
+    @DisplayName("토큰 갱신 테스트 - refresh_token이 존재하고 만료까지 1달 미만 남았다면 refresh_token과 access_token 토큰을 갱신한다.")
     void refresh3() {
         // given
         LocalDateTime now = LocalDateTime.now();
@@ -187,7 +178,7 @@ class MemberServiceTest {
     }
 
     @Test
-    @DisplayName("토큰 갱신 테스트 - refresh_token이 만료되었다면 401 에러 반환")
+    @DisplayName("토큰 갱신 테스트 - refresh_token이 만료되었다면 401 에러를 반환한다.")
     void refresh4() {
         // given
         memberRepository.save(Member.builder()
@@ -200,7 +191,7 @@ class MemberServiceTest {
     }
 
     @Test
-    @DisplayName("약관 동의 테스트 - 어떠한 매개변수라도 null이면 400 에러 반환")
+    @DisplayName("약관 동의 테스트 - 어떠한 매개변수라도 null이면 400 에러 반환한다.")
     void agreeTerms() {
         // given
         Member member = Member.builder()
@@ -227,25 +218,23 @@ class MemberServiceTest {
     @DisplayName("약관 동의 테스트 - 요청된 값을 기반으로 Member를 업데이트 한다")
     void agreeTerms2() {
         // given
-        Member member = Member.builder()
-                .build();
         MemberAgreementRequest memberAgreementRequest = MemberAgreementRequest.builder()
                 .marketing_agreement(true)
                 .personal_information_agreement(false)
                 .build();
-        memberRepository.save(member);
+        Member member = memberRepository.save(Member.builder().build());
 
         // when
-        member = memberService.updateAgreement(new MemberAuthDto(99L), memberAgreementRequest);
+        Member res = memberService.updateAgreement(new MemberAuthDto(member.getId()), memberAgreementRequest);
 
         // then
-        assertEquals(99L, member.getId());
-        assertTrue(member.getMarketingAgreement());
-        assertFalse(member.getPersonalInformationAgreement());
+        assertEquals(res.getId(), member.getId());
+        assertTrue(res.getMarketingAgreement());
+        assertFalse(res.getPersonalInformationAgreement());
     }
 
     @Test
-    @DisplayName("유저 닉네임 설정 - 닉네임이 중복되면 400 에러 반환")
+    @DisplayName("유저 닉네임 설정 - 닉네임이 중복되면 400 에러 반환한다.")
     void setNickname() {
         // given
         Member member = memberRepository.save(Member.builder()
@@ -260,7 +249,7 @@ class MemberServiceTest {
     }
 
     @Test
-    @DisplayName("유저 닉네임 설정 - 최대 10자 이하로 설정 가능, 아니면 400 에러 반환")
+    @DisplayName("유저 닉네임 설정 - 최대 10자 이하로 설정 가능, 아니면 400 에러 반환한다.")
     void setNickname2() {
         // given
         Member member = memberRepository.save(Member.builder()
@@ -271,8 +260,20 @@ class MemberServiceTest {
     }
 
     @Test
-    @DisplayName("유저 닉네임 설정 - 성공시 Member 업데이트")
+    @DisplayName("유저 닉네임 설정 - 최소 1글자 이상으로 설정 가능, 아니면 400 에러 반환한다.")
     void setNickname3() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+
+        // when & then
+        assertThrows(InvalidRequestException.class, () -> memberService.updateName(new MemberAuthDto(member.getId()), new MemberNameRequest("")));
+    }
+
+
+    @Test
+    @DisplayName("유저 닉네임 설정 - 성공시 Member 업데이트한다.")
+    void setNickname4() {
         // given
         Member member = memberRepository.save(Member.builder()
                 .build());

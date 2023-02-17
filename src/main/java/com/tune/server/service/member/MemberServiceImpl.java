@@ -13,6 +13,7 @@ import com.tune.server.repository.MemberProviderRepository;
 import com.tune.server.repository.MemberRepository;
 import com.tune.server.util.JwtUtil;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -24,6 +25,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
+@Slf4j
 @AllArgsConstructor
 public class MemberServiceImpl implements MemberService {
     private MemberProviderRepository memberProviderRepository;
@@ -56,6 +58,7 @@ public class MemberServiceImpl implements MemberService {
             memberProviderRepository.save(memberProvider);
             return true;
         } catch (Exception e) {
+            log.error("회원가입 실패", e);
             return false;
         }
     }
@@ -112,6 +115,8 @@ public class MemberServiceImpl implements MemberService {
             throw new InvalidRequestException("필수 파라미터가 누락되었습니다.");
         } else if (request.getName().length() > 10) {
             throw new InvalidRequestException("이름은 10자 이하로 입력해주세요.");
+        }  else if (request.getName().length() < 1) {
+            throw new InvalidRequestException("이름은 1자 이상으로 입력해주세요.");
         } else if (memberRepository.findByName(request.getName()).isPresent()) {
             throw new InvalidRequestException("이미 존재하는 이름입니다.");
         }
