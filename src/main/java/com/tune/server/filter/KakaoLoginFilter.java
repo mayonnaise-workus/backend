@@ -95,7 +95,7 @@ public class KakaoLoginFilter extends OncePerRequestFilter {
 
             return kakaoTokenRequest;
         } catch (IOException e) {
-            throw new TokenNotFoundException("카카오 토큰을 조회하는 중에 오류가 발생했습니다.");
+            throw new TokenNotFoundException("카카오 토큰을 조회하는 중에 오류가 발생했습니다." + e.getMessage());
         }
     }
 

@@ -1,6 +1,5 @@
 package com.tune.server.domain;
 
-import io.micrometer.core.lang.Nullable;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -9,6 +8,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -44,6 +44,12 @@ public class Member {
     @Setter
     @Column(name = "refresh_token_expires_at")
     private LocalDateTime refreshTokenExpiresAt;
+
+
+    @Setter
+    @OneToMany(fetch = FetchType.EAGER)
+    @JoinColumn(name = "member_preference_region_id")
+    private List<MemberPreferenceRegion> memberPreferenceRegion;
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)

@@ -6,6 +6,7 @@ import com.tune.server.dto.MemberAuthDto;
 import com.tune.server.dto.kakao.KakaoUserInfo;
 import com.tune.server.dto.request.MemberAgreementRequest;
 import com.tune.server.dto.request.MemberNameRequest;
+import com.tune.server.dto.request.MemberPreferenceRegionRequest;
 import com.tune.server.exceptions.login.TokenExpiredException;
 import com.tune.server.exceptions.member.InvalidRequestException;
 import com.tune.server.exceptions.member.MemberNotFoundException;
@@ -15,10 +16,13 @@ import com.tune.server.util.JwtUtil;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
+import javax.sql.DataSource;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @Import(MemberServiceImpl.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class MemberServiceTest {
 
     @Autowired
@@ -37,10 +42,13 @@ class MemberServiceTest {
     private MemberRepository memberRepository;
 
     @Autowired
+    private DataSource dataSource;
+
+    @Autowired
     private MemberService memberService;
 
     @BeforeAll
-    static void beforeAll() {
+    void beforeAll() throws SQLException {
         JwtUtil.JWT_SECRET_KEY = "Jo73VnKMoZCBEgBloGffXFTDsZxRZ9fN5geXS3nX0wE";
     }
     @Test
@@ -283,5 +291,53 @@ class MemberServiceTest {
         // then
         assertEquals(member.getId(), member.getId());
         assertEquals("nickname", member.getName());
+    }
+
+    @Test
+    @DisplayName("선호 지역 설정 테스트 - 성공시 Member 업데이트한다.")
+    void updatePreferenceLocation() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+        MemberPreferenceRegionRequest memberPreferenceRegionRequest = MemberPreferenceRegionRequest.builder()
+                .location_ids(List.of(1L, 2L, 3L))
+                .build();
+
+        // when
+        Member result = memberService.updatePreferenceLocation(new MemberAuthDto(member.getId()), memberPreferenceRegionRequest);
+
+        // then
+        assertEquals(member.getId(), result.getId());
+        System.out.println(member);
+        result.getMemberPreferenceRegion().forEach(memberPreferenceRegion -> {
+            assertTrue(memberPreferenceRegionRequest.getLocation_ids().contains(memberPreferenceRegion.getId()));
+        });
+    }
+
+
+    @Test
+    @DisplayName("선호 지역 설정 테스트 - 범위에 없는 지역인 경우 400 에러를 반환한다.")
+    void updatePreferenceLocation2() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+        MemberPreferenceRegionRequest memberPreferenceRegionRequest = MemberPreferenceRegionRequest.builder()
+                .location_ids(List.of(1L, 2L, 99L))
+                .build();
+
+        // when & then
+        assertThrows(InvalidRequestException.class, () -> memberService.updatePreferenceLocation(new MemberAuthDto(member.getId()), memberPreferenceRegionRequest));
+    }
+
+    @Test
+    @DisplayName("선호 지역 설정 테스트 - 지역을 선택하지 않은 경우 400 에러를 반환한다.")
+    void updatePreferenceLocation3() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+        MemberPreferenceRegionRequest memberPreferenceRegionRequest = MemberPreferenceRegionRequest.builder().build();
+
+        // when & then
+        assertThrows(InvalidRequestException.class, () -> memberService.updatePreferenceLocation(new MemberAuthDto(member.getId()), memberPreferenceRegionRequest));
     }
 }

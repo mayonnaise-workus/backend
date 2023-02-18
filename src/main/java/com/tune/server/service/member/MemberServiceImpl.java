@@ -1,16 +1,21 @@
 package com.tune.server.service.member;
 
 import com.tune.server.domain.Member;
+import com.tune.server.domain.MemberPreferenceRegion;
 import com.tune.server.domain.MemberProvider;
+import com.tune.server.domain.Region;
 import com.tune.server.dto.MemberAuthDto;
 import com.tune.server.dto.kakao.KakaoUserInfo;
 import com.tune.server.dto.request.MemberAgreementRequest;
 import com.tune.server.dto.request.MemberNameRequest;
+import com.tune.server.dto.request.MemberPreferenceRegionRequest;
 import com.tune.server.exceptions.login.TokenExpiredException;
 import com.tune.server.exceptions.member.InvalidRequestException;
 import com.tune.server.exceptions.member.MemberNotFoundException;
+import com.tune.server.repository.MemberPreferenceRegionRepository;
 import com.tune.server.repository.MemberProviderRepository;
 import com.tune.server.repository.MemberRepository;
+import com.tune.server.repository.RegionRepository;
 import com.tune.server.util.JwtUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,10 +24,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -30,6 +32,10 @@ import java.util.Optional;
 public class MemberServiceImpl implements MemberService {
     private MemberProviderRepository memberProviderRepository;
     private MemberRepository memberRepository;
+
+    private RegionRepository regionRepository;
+
+    private MemberPreferenceRegionRepository memberPreferenceRegionRepository;
 
     @Override
     public boolean isExistMember(KakaoUserInfo id) {
@@ -70,6 +76,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    @Transactional
     public Map<String, String> refresh(String refreshToken) {
         Member member = memberRepository.findByRefreshToken(refreshToken).orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
         if (member.getRefreshTokenExpiresAt().isBefore(LocalDateTime.now())) {
@@ -91,6 +98,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    @Transactional
     public Member updateAgreement(MemberAuthDto member, MemberAgreementRequest request) {
         if (request.getMarketing_agreement() == null || request.getPersonal_information_agreement() == null) {
             throw new InvalidRequestException("필수 파라미터가 누락되었습니다.");
@@ -108,6 +116,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    @Transactional
     public Member updateName(MemberAuthDto principal, MemberNameRequest request) {
         Member member = memberRepository.findById(principal.getId()).orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
 
@@ -122,6 +131,29 @@ public class MemberServiceImpl implements MemberService {
         }
 
         member.setName(request.getName());
+        return memberRepository.save(member);
+    }
+
+    @Override
+    @Transactional
+    public Member updatePreferenceLocation(MemberAuthDto principal, MemberPreferenceRegionRequest request) {
+        Member member = memberRepository.findById(principal.getId()).orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
+
+        if (request.getLocation_ids() == null || request.getLocation_ids().size() == 0) {
+            throw new InvalidRequestException("필수 파라미터가 누락되었습니다.");
+        }
+
+        List<MemberPreferenceRegion> memberPreferenceRegions = new ArrayList<>();
+        for (Long locationId : request.getLocation_ids()) {
+            MemberPreferenceRegion memberPreferenceRegion = MemberPreferenceRegion.builder()
+                    .region(regionRepository.findById(locationId).orElseThrow(() -> new InvalidRequestException("존재하지 않는 지역입니다.")))
+                    .member(member)
+                    .build();
+            memberPreferenceRegions.add(memberPreferenceRegion);
+        }
+
+        member.setMemberPreferenceRegion(memberPreferenceRegions);
+        memberPreferenceRegionRepository.saveAll(memberPreferenceRegions);
         return memberRepository.save(member);
     }
 }

@@ -4,6 +4,7 @@ import com.tune.server.domain.Member;
 import com.tune.server.dto.MemberAuthDto;
 import com.tune.server.dto.request.MemberAgreementRequest;
 import com.tune.server.dto.request.MemberNameRequest;
+import com.tune.server.dto.request.MemberPreferenceRegionRequest;
 import com.tune.server.dto.response.MemberResponse;
 import com.tune.server.service.member.MemberService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -47,4 +48,10 @@ public class MemberController {
     public ResponseEntity<MemberResponse> updateName(@ApiIgnore Authentication authentication, @RequestBody MemberNameRequest request) {
         return ResponseEntity.ok(MemberResponse.of(memberService.updateName((MemberAuthDto) authentication.getPrincipal(), request)));
     }
+
+    @PostMapping("/member/preference/region")
+    public ResponseEntity<MemberResponse> updatePreferenceLocation(@ApiIgnore Authentication authentication, @RequestBody MemberPreferenceRegionRequest request) {
+        return ResponseEntity.ok(MemberResponse.of(memberService.updatePreferenceLocation((MemberAuthDto) authentication.getPrincipal(), request)));
+    }
+
 }
