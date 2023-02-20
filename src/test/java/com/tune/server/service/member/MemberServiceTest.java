@@ -22,7 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
-import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -379,6 +378,60 @@ class MemberServiceTest {
         assertEquals(member.getId(), result.getId());
         result.getMemberPurpose().forEach(memberPurpose -> {
             assertTrue(memberPurposeRequest.getPurpose_ids().contains(memberPurpose.getId()));
+        });
+    }
+
+    @Test
+    @DisplayName("선호 워크 스페이스 설정 테스트 - 선호 워크 스페이스를 선택하지 않은 경우 400 에러를 반환한다.")
+    void updatePreferenceWorkspace() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+        MemberPurposeRequest memberPurposeRequest = MemberPurposeRequest.builder().build();
+
+        // when & then
+        assertThrows(InvalidRequestException.class, () -> memberService.updateWorkspacePurpose(new MemberAuthDto(member.getId()), memberPurposeRequest));
+    }
+
+    @Test
+    @DisplayName("선호 워크 스페이스 설정 테스트 - 선택한 선호 워크 스페이스가 범위에 없는 경우 400 에러를 반환한다.")
+    void updatePreferenceWorkspace2() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+        MemberPurposeRequest memberPurposeRequest = MemberPurposeRequest.builder().purpose_ids(List.of(1L, 2L, 99L)).build();
+
+        // when & then
+        assertThrows(InvalidRequestException.class, () -> memberService.updateWorkspacePurpose(new MemberAuthDto(member.getId()), memberPurposeRequest));
+    }
+
+    @Test
+    @DisplayName("선호 워크 스페이스 설정 테스트 - 선택한 선호 워크 스페이스가 3개보다 많은 경우 400 에러를 반환한다.")
+    void updatePreferenceWorkspace3() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+        MemberPurposeRequest memberPurposeRequest = MemberPurposeRequest.builder().purpose_ids(List.of(1L, 2L, 3L, 4L)).build();
+
+        // when & then
+        assertThrows(InvalidRequestException.class, () -> memberService.updateWorkspacePurpose(new MemberAuthDto(member.getId()), memberPurposeRequest));
+    }
+
+    @Test
+    @DisplayName("선호 워크 스페이스 설정 테스트 - 성공시 Member를 업데이트한다.")
+    void updatePreferenceWorkspace4() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+        MemberPurposeRequest memberPurposeRequest = MemberPurposeRequest.builder().purpose_ids(List.of(1L, 2L, 3L)).build();
+
+        // when
+        Member result = memberService.updateWorkspacePurpose(new MemberAuthDto(member.getId()), memberPurposeRequest);
+
+        // then
+        assertEquals(member.getId(), result.getId());
+        result.getMemberWorkSpacePurpose().forEach(workspacePurpose -> {
+            assertTrue(memberPurposeRequest.getPurpose_ids().contains(workspacePurpose.getId()));
         });
     }
 }

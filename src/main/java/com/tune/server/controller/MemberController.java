@@ -60,4 +60,9 @@ public class MemberController {
         return ResponseEntity.ok(MemberResponse.of(memberService.updatePurpose((MemberAuthDto) authentication.getPrincipal(), request)));
     }
 
+    @PostMapping("/member/preference/workspace-purpose")
+    public ResponseEntity<MemberResponse> updatePreferenceWorkspacePurpose(@ApiIgnore Authentication authentication, @RequestBody MemberPurposeRequest request) {
+        return ResponseEntity.ok(MemberResponse.of(memberService.updateWorkspacePurpose((MemberAuthDto) authentication.getPrincipal(), request)));
+    }
+
 }

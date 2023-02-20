@@ -25,6 +25,9 @@ import java.util.*;
 @Slf4j
 @AllArgsConstructor
 public class MemberServiceImpl implements MemberService {
+
+    private WorkspacePurposeRepository workspacePurposeRepository;
+    private MemberWorkspacePurposeRepository memberWorkspacePurposeRepository;
     private MemberPurposeRepository memberPurposeRepository;
     private PurposeRepository purposeRepository;
     private MemberProviderRepository memberProviderRepository;
@@ -155,6 +158,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    @Transactional
     public Member updatePurpose(MemberAuthDto principal, MemberPurposeRequest request) {
         Member member = memberRepository.findById(principal.getId()).orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
 
@@ -173,6 +177,31 @@ public class MemberServiceImpl implements MemberService {
 
         member.setMemberPurpose(memberPurposes);
         memberPurposeRepository.saveAll(memberPurposes);
+        return memberRepository.save(member);
+    }
+
+    @Override
+    @Transactional
+    public Member updateWorkspacePurpose(MemberAuthDto principal, MemberPurposeRequest request) {
+        Member member = memberRepository.findById(principal.getId()).orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
+
+        if (request.getPurpose_ids() == null || request.getPurpose_ids().size() == 0) {
+            throw new InvalidRequestException("필수 파라미터가 누락되었습니다.");
+        } else if (request.getPurpose_ids().size() > 3) {
+            throw new InvalidRequestException("최대 3개의 선택지를 선택할 수 있습니다.");
+        }
+
+        Set<MemberWorkspacePurpose> memberWorkspacePurposes = new HashSet<>();
+        for(Long id: request.getPurpose_ids()) {
+            MemberWorkspacePurpose memberWorkspacePurpose = workspacePurposeRepository.findById(id).map(purpose -> MemberWorkspacePurpose.builder()
+                    .purpose(purpose)
+                    .member(member)
+                    .build()).orElseThrow(() -> new InvalidRequestException("존재하지 않는 목적입니다."));
+            memberWorkspacePurposes.add(memberWorkspacePurpose);
+        }
+
+        member.setMemberWorkSpacePurpose(memberWorkspacePurposes);
+        memberWorkspacePurposeRepository.saveAll(memberWorkspacePurposes);
         return memberRepository.save(member);
     }
 

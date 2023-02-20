@@ -30,4 +30,6 @@ public interface MemberService {
     Member updatePreferenceLocation(MemberAuthDto principal, MemberPreferenceRegionRequest request);
 
     Member updatePurpose(MemberAuthDto principal, MemberPurposeRequest request);
+
+    Member updateWorkspacePurpose(MemberAuthDto principal, MemberPurposeRequest request);
 }

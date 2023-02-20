@@ -8,7 +8,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -55,6 +54,11 @@ public class Member {
     @OneToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "member_purpose_id")
     private Set<MemberPurpose> memberPurpose;
+
+    @Setter
+    @OneToMany(fetch = FetchType.EAGER)
+    @JoinColumn(name = "member_workspace_purpose_id")
+    private Set<MemberWorkspacePurpose> memberWorkSpacePurpose;
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)
