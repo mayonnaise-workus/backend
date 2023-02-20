@@ -2,6 +2,7 @@ package com.tune.server.dto.response;
 
 import com.tune.server.domain.Member;
 import com.tune.server.domain.MemberPreferenceRegion;
+import com.tune.server.domain.MemberPurpose;
 import com.tune.server.domain.Region;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Builder;
@@ -27,16 +28,12 @@ public class MemberResponse {
     @ApiModelProperty(value = "개인정보 수집 여부", example = "true|false|null")
     private Boolean personal_information_agreement;
 
-    @ApiModelProperty(value = "회원 선호 지역", example = "1|2|3")
-    private List<RegionResponse> member_preference_region;
-
     public static MemberResponse of(Member member) {
         return MemberResponse.builder()
                 .id(member.getId())
                 .name(member.getName())
                 .marketing_agreement(member.getMarketingAgreement())
                 .personal_information_agreement(member.getPersonalInformationAgreement())
-                .member_preference_region(RegionResponse.of(member.getMemberPreferenceRegion()))
                 .build();
     }
 }

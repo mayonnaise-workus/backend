@@ -20,6 +20,7 @@ import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -152,7 +153,6 @@ public class MemberServiceImpl implements MemberService {
             memberPreferenceRegions.add(memberPreferenceRegion);
         }
 
-        member.setMemberPreferenceRegion(memberPreferenceRegions);
         memberPreferenceRegionRepository.saveAll(memberPreferenceRegions);
         return memberRepository.save(member);
     }
@@ -175,7 +175,6 @@ public class MemberServiceImpl implements MemberService {
             memberPurposes.add(memberPurpose);
         }
 
-        member.setMemberPurpose(memberPurposes);
         memberPurposeRepository.saveAll(memberPurposes);
         return memberRepository.save(member);
     }
@@ -200,7 +199,6 @@ public class MemberServiceImpl implements MemberService {
             memberWorkspacePurposes.add(memberWorkspacePurpose);
         }
 
-        member.setMemberWorkSpacePurpose(memberWorkspacePurposes);
         memberWorkspacePurposeRepository.saveAll(memberWorkspacePurposes);
         return memberRepository.save(member);
     }

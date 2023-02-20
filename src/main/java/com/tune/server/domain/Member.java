@@ -45,21 +45,6 @@ public class Member {
     @Column(name = "refresh_token_expires_at")
     private LocalDateTime refreshTokenExpiresAt;
 
-    @Setter
-    @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "member_preference_region_id")
-    private Set<MemberPreferenceRegion> memberPreferenceRegion;
-
-    @Setter
-    @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "member_purpose_id")
-    private Set<MemberPurpose> memberPurpose;
-
-    @Setter
-    @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "member_workspace_purpose_id")
-    private Set<MemberWorkspacePurpose> memberWorkSpacePurpose;
-
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
