@@ -5,6 +5,7 @@ import com.tune.server.dto.MemberAuthDto;
 import com.tune.server.dto.request.MemberAgreementRequest;
 import com.tune.server.dto.request.MemberNameRequest;
 import com.tune.server.dto.request.MemberPreferenceRegionRequest;
+import com.tune.server.dto.request.MemberPurposeRequest;
 import com.tune.server.dto.response.MemberResponse;
 import com.tune.server.service.member.MemberService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -52,6 +53,11 @@ public class MemberController {
     @PostMapping("/member/preference/region")
     public ResponseEntity<MemberResponse> updatePreferenceLocation(@ApiIgnore Authentication authentication, @RequestBody MemberPreferenceRegionRequest request) {
         return ResponseEntity.ok(MemberResponse.of(memberService.updatePreferenceLocation((MemberAuthDto) authentication.getPrincipal(), request)));
+    }
+
+    @PostMapping("/member/preference/purpose")
+    public ResponseEntity<MemberResponse> updatePreferencePurpose(@ApiIgnore Authentication authentication, @RequestBody MemberPurposeRequest request) {
+        return ResponseEntity.ok(MemberResponse.of(memberService.updatePurpose((MemberAuthDto) authentication.getPrincipal(), request)));
     }
 
 }

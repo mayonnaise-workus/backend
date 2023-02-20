@@ -7,6 +7,7 @@ import com.tune.server.dto.kakao.KakaoUserInfo;
 import com.tune.server.dto.request.MemberAgreementRequest;
 import com.tune.server.dto.request.MemberNameRequest;
 import com.tune.server.dto.request.MemberPreferenceRegionRequest;
+import com.tune.server.dto.request.MemberPurposeRequest;
 import com.tune.server.exceptions.login.TokenExpiredException;
 import com.tune.server.exceptions.member.InvalidRequestException;
 import com.tune.server.exceptions.member.MemberNotFoundException;
@@ -41,8 +42,6 @@ class MemberServiceTest {
     @Autowired
     private MemberRepository memberRepository;
 
-    @Autowired
-    private DataSource dataSource;
 
     @Autowired
     private MemberService memberService;
@@ -339,5 +338,47 @@ class MemberServiceTest {
 
         // when & then
         assertThrows(InvalidRequestException.class, () -> memberService.updatePreferenceLocation(new MemberAuthDto(member.getId()), memberPreferenceRegionRequest));
+    }
+
+    @Test
+    @DisplayName("업무 목적 설정 테스트 - 업무 목적을 선택하지 않은 경우 400 에러를 반환한다.")
+    void updatePurpose() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+        MemberPurposeRequest memberPurposeRequest = MemberPurposeRequest.builder().build();
+
+        // when & then
+        assertThrows(InvalidRequestException.class, () -> memberService.updatePurpose(new MemberAuthDto(member.getId()), memberPurposeRequest));
+    }
+
+    @Test
+    @DisplayName("업무 목적 설정 테스트 - 선택한 업무 목적이 범위에 없는 경우 400 에러를 반환한다.")
+    void updatePurpose2() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+        MemberPurposeRequest memberPurposeRequest = MemberPurposeRequest.builder().purpose_ids(List.of(1L, 2L, 99L)).build();
+
+        // when & then
+        assertThrows(InvalidRequestException.class, () -> memberService.updatePurpose(new MemberAuthDto(member.getId()), memberPurposeRequest));
+    }
+
+    @Test
+    @DisplayName("업무 목적 설정 테스트 - 성공시 Member를 업데이트한다.")
+    void updatePurpose3() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+        MemberPurposeRequest memberPurposeRequest = MemberPurposeRequest.builder().purpose_ids(List.of(1L, 2L, 3L)).build();
+
+        // when
+        Member result = memberService.updatePurpose(new MemberAuthDto(member.getId()), memberPurposeRequest);
+
+        // then
+        assertEquals(member.getId(), result.getId());
+        result.getMemberPurpose().forEach(memberPurpose -> {
+            assertTrue(memberPurposeRequest.getPurpose_ids().contains(memberPurpose.getId()));
+        });
     }
 }

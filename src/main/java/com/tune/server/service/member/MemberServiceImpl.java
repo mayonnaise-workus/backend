@@ -1,21 +1,16 @@
 package com.tune.server.service.member;
 
-import com.tune.server.domain.Member;
-import com.tune.server.domain.MemberPreferenceRegion;
-import com.tune.server.domain.MemberProvider;
-import com.tune.server.domain.Region;
+import com.tune.server.domain.*;
 import com.tune.server.dto.MemberAuthDto;
 import com.tune.server.dto.kakao.KakaoUserInfo;
 import com.tune.server.dto.request.MemberAgreementRequest;
 import com.tune.server.dto.request.MemberNameRequest;
 import com.tune.server.dto.request.MemberPreferenceRegionRequest;
+import com.tune.server.dto.request.MemberPurposeRequest;
 import com.tune.server.exceptions.login.TokenExpiredException;
 import com.tune.server.exceptions.member.InvalidRequestException;
 import com.tune.server.exceptions.member.MemberNotFoundException;
-import com.tune.server.repository.MemberPreferenceRegionRepository;
-import com.tune.server.repository.MemberProviderRepository;
-import com.tune.server.repository.MemberRepository;
-import com.tune.server.repository.RegionRepository;
+import com.tune.server.repository.*;
 import com.tune.server.util.JwtUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +25,8 @@ import java.util.*;
 @Slf4j
 @AllArgsConstructor
 public class MemberServiceImpl implements MemberService {
+    private MemberPurposeRepository memberPurposeRepository;
+    private PurposeRepository purposeRepository;
     private MemberProviderRepository memberProviderRepository;
     private MemberRepository memberRepository;
 
@@ -143,7 +140,7 @@ public class MemberServiceImpl implements MemberService {
             throw new InvalidRequestException("필수 파라미터가 누락되었습니다.");
         }
 
-        List<MemberPreferenceRegion> memberPreferenceRegions = new ArrayList<>();
+        Set<MemberPreferenceRegion> memberPreferenceRegions = new HashSet<>();
         for (Long locationId : request.getLocation_ids()) {
             MemberPreferenceRegion memberPreferenceRegion = MemberPreferenceRegion.builder()
                     .region(regionRepository.findById(locationId).orElseThrow(() -> new InvalidRequestException("존재하지 않는 지역입니다.")))
@@ -156,4 +153,27 @@ public class MemberServiceImpl implements MemberService {
         memberPreferenceRegionRepository.saveAll(memberPreferenceRegions);
         return memberRepository.save(member);
     }
+
+    @Override
+    public Member updatePurpose(MemberAuthDto principal, MemberPurposeRequest request) {
+        Member member = memberRepository.findById(principal.getId()).orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
+
+        if (request.getPurpose_ids() == null || request.getPurpose_ids().size() == 0) {
+            throw new InvalidRequestException("필수 파라미터가 누락되었습니다.");
+        }
+
+        Set<MemberPurpose> memberPurposes = new HashSet<>();
+        for(Long purposeId: request.getPurpose_ids()) {
+            MemberPurpose memberPurpose = purposeRepository.findById(purposeId).map(purpose -> MemberPurpose.builder()
+                    .purpose(purpose)
+                    .member(member)
+                    .build()).orElseThrow(() -> new InvalidRequestException("존재하지 않는 목적입니다."));
+            memberPurposes.add(memberPurpose);
+        }
+
+        member.setMemberPurpose(memberPurposes);
+        memberPurposeRepository.saveAll(memberPurposes);
+        return memberRepository.save(member);
+    }
+
 }

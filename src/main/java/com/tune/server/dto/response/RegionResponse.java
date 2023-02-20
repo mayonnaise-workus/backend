@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.ToString;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Getter
@@ -23,7 +24,7 @@ public class RegionResponse {
                 .build();
     }
 
-    public static List<RegionResponse> of(List<MemberPreferenceRegion> memberPreferenceRegion) {
+    public static List<RegionResponse> of(Set<MemberPreferenceRegion> memberPreferenceRegion) {
         return memberPreferenceRegion.stream()
                 .map(RegionResponse::of)
                 .collect(Collectors.toList());

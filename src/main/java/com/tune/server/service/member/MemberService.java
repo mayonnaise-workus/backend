@@ -6,6 +6,7 @@ import com.tune.server.dto.kakao.KakaoUserInfo;
 import com.tune.server.dto.request.MemberAgreementRequest;
 import com.tune.server.dto.request.MemberNameRequest;
 import com.tune.server.dto.request.MemberPreferenceRegionRequest;
+import com.tune.server.dto.request.MemberPurposeRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -27,4 +28,6 @@ public interface MemberService {
     Member updateName(MemberAuthDto principal, MemberNameRequest request);
 
     Member updatePreferenceLocation(MemberAuthDto principal, MemberPreferenceRegionRequest request);
+
+    Member updatePurpose(MemberAuthDto principal, MemberPurposeRequest request);
 }
