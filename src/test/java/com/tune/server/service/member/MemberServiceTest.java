@@ -1,18 +1,17 @@
 package com.tune.server.service.member;
 
-import com.tune.server.domain.Member;
-import com.tune.server.domain.MemberProvider;
+import com.tune.server.domain.*;
 import com.tune.server.dto.MemberAuthDto;
 import com.tune.server.dto.kakao.KakaoUserInfo;
 import com.tune.server.dto.request.MemberAgreementRequest;
 import com.tune.server.dto.request.MemberNameRequest;
 import com.tune.server.dto.request.MemberPreferenceRegionRequest;
 import com.tune.server.dto.request.MemberPurposeRequest;
+import com.tune.server.dto.response.MemberOnboardingResponse;
 import com.tune.server.exceptions.login.TokenExpiredException;
 import com.tune.server.exceptions.member.InvalidRequestException;
 import com.tune.server.exceptions.member.MemberNotFoundException;
-import com.tune.server.repository.MemberProviderRepository;
-import com.tune.server.repository.MemberRepository;
+import com.tune.server.repository.*;
 import com.tune.server.util.JwtUtil;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -27,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -36,17 +36,37 @@ import static org.junit.jupiter.api.Assertions.*;
 class MemberServiceTest {
 
     @Autowired
+    private WorkspacePurposeRepository workspacePurposeRepository;
+    @Autowired
+    private MemberWorkspacePurposeRepository memberWorkspacePurposeRepository;
+    @Autowired
+    private MemberPurposeRepository memberPurposeRepository;
+    @Autowired
+    private PurposeRepository purposeRepository;
+    @Autowired
     private MemberProviderRepository memberProviderRepository;
-
     @Autowired
     private MemberRepository memberRepository;
 
+    @Autowired
+    private RegionRepository regionRepository;
+    private MemberService memberService;
 
     @Autowired
-    private MemberService memberService;
+    private MemberPreferenceRegionRepository memberPreferenceRegionRepository;
 
     @BeforeAll
     void beforeAll() throws SQLException {
+        memberService = new MemberServiceImpl(
+                workspacePurposeRepository,
+                memberWorkspacePurposeRepository,
+                memberPurposeRepository,
+                purposeRepository,
+                memberProviderRepository,
+                memberRepository,
+                regionRepository,
+                memberPreferenceRegionRepository
+        );
         JwtUtil.JWT_SECRET_KEY = "Jo73VnKMoZCBEgBloGffXFTDsZxRZ9fN5geXS3nX0wE";
     }
     @Test
@@ -306,9 +326,9 @@ class MemberServiceTest {
 
         // then
         assertEquals(member.getId(), result.getId());
-//        result.getMemberPreferenceRegion().forEach(memberPreferenceRegion -> {
-//            assertTrue(memberPreferenceRegionRequest.getLocation_ids().contains(memberPreferenceRegion.getId()));
-//        });
+
+        List<MemberPreferenceRegion> memberPreferenceRegions = memberPreferenceRegionRepository.findAllByMember(member);
+        assertEquals(3, memberPreferenceRegions.size());
     }
 
 
@@ -375,9 +395,9 @@ class MemberServiceTest {
 
         // then
         assertEquals(member.getId(), result.getId());
-//        result.getMemberPurpose().forEach(memberPurpose -> {
-//            assertTrue(memberPurposeRequest.getPurpose_ids().contains(memberPurpose.getId()));
-//        });
+
+        List<MemberPurpose> memberPurposes = memberPurposeRepository.findAllByMember(member);
+        assertEquals(3, memberPurposes.size());
     }
 
     @Test
@@ -429,8 +449,88 @@ class MemberServiceTest {
 
         // then
         assertEquals(member.getId(), result.getId());
-//        result.getMemberWorkSpacePurpose().forEach(workspacePurpose -> {
-//            assertTrue(memberPurposeRequest.getPurpose_ids().contains(workspacePurpose.getId()));
-//        });
+
+        List<MemberWorkspacePurpose> memberPurposes = memberWorkspacePurposeRepository.findAllByMember(member);
+        assertEquals(3, memberPurposes.size());
+    }
+
+    @Test
+    @DisplayName("온보딩 진행 상황 조회 테스트 - 아무런 온보딩을 진행하지 않은 경우")
+    void getOnboardingStatus() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+
+        // when
+        MemberOnboardingResponse result = memberService.getOnboardingStatus(new MemberAuthDto(member.getId()));
+
+        // then
+        assertFalse(result.getTerms_of_service_status());
+        assertFalse(result.getNickname_status());
+        assertFalse(result.getMember_preference_region_status());
+        assertFalse(result.getMember_purpose_status());
+        assertFalse(result.getMember_preference_workspace_status());
+    }
+
+    @Test
+    @DisplayName("온보딩 진행 상황 조회 테스트 - 약관 동의만 진행한 경우")
+    void getOnboardingStatus2() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+        memberService.updateAgreement(new MemberAuthDto(member.getId()), MemberAgreementRequest.builder().marketing_agreement(true).personal_information_agreement(true).build());
+
+        // when
+        MemberOnboardingResponse result = memberService.getOnboardingStatus(new MemberAuthDto(member.getId()));
+
+        // then
+        assertTrue(result.getTerms_of_service_status());
+        assertFalse(result.getNickname_status());
+        assertFalse(result.getMember_preference_region_status());
+        assertFalse(result.getMember_purpose_status());
+        assertFalse(result.getMember_preference_workspace_status());
+    }
+
+    @Test
+    @DisplayName("온보딩 진행 상황 조회 테스트 - 약관 동의와 닉네임 설정을 진행한 경우")
+    void getOnboardingStatus3() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+        memberService.updateAgreement(new MemberAuthDto(member.getId()), MemberAgreementRequest.builder().marketing_agreement(true).personal_information_agreement(true).build());
+        memberService.updateName(new MemberAuthDto(member.getId()), MemberNameRequest.builder().name("test").build());
+
+        // when
+        MemberOnboardingResponse result = memberService.getOnboardingStatus(new MemberAuthDto(member.getId()));
+
+        // then
+        assertTrue(result.getTerms_of_service_status());
+        assertTrue(result.getNickname_status());
+        assertFalse(result.getMember_preference_region_status());
+        assertFalse(result.getMember_purpose_status());
+        assertFalse(result.getMember_preference_workspace_status());
+    }
+
+    @Test
+    @DisplayName("온보딩 진행 상황 조회 테스트 - 모든 온보딩을 진행한 경우")
+    void getOnboardingStatus4() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+        memberService.updateAgreement(new MemberAuthDto(member.getId()), MemberAgreementRequest.builder().marketing_agreement(true).personal_information_agreement(true).build());
+        memberService.updateName(new MemberAuthDto(member.getId()), MemberNameRequest.builder().name("test").build());
+        memberService.updatePreferenceLocation(new MemberAuthDto(member.getId()), MemberPreferenceRegionRequest.builder().location_ids(List.of(1L, 2L, 3L)).build());
+        memberService.updatePurpose(new MemberAuthDto(member.getId()), MemberPurposeRequest.builder().purpose_ids(List.of(1L, 2L, 3L)).build());
+        memberService.updateWorkspacePurpose(new MemberAuthDto(member.getId()), MemberPurposeRequest.builder().purpose_ids(List.of(1L, 2L, 3L)).build());
+
+        // when
+        MemberOnboardingResponse result = memberService.getOnboardingStatus(new MemberAuthDto(member.getId()));
+
+        // then
+        assertTrue(result.getTerms_of_service_status());
+        assertTrue(result.getNickname_status());
+        assertTrue(result.getMember_preference_region_status());
+        assertTrue(result.getMember_purpose_status());
+        assertTrue(result.getMember_preference_workspace_status());
     }
 }

@@ -6,9 +6,11 @@ import com.tune.server.dto.request.MemberAgreementRequest;
 import com.tune.server.dto.request.MemberNameRequest;
 import com.tune.server.dto.request.MemberPreferenceRegionRequest;
 import com.tune.server.dto.request.MemberPurposeRequest;
+import com.tune.server.dto.response.MemberOnboardingResponse;
 import com.tune.server.dto.response.MemberPreferenceResponse;
 import com.tune.server.dto.response.MemberResponse;
 import com.tune.server.service.member.MemberService;
+import io.swagger.annotations.ApiModelProperty;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.AllArgsConstructor;
@@ -38,6 +40,11 @@ public class MemberController {
     @GetMapping("/member")
     public ResponseEntity<MemberResponse> getMember(@ApiIgnore Authentication authentication) {
         return ResponseEntity.ok(MemberResponse.of(memberService.getInfo((MemberAuthDto) authentication.getPrincipal())));
+    }
+
+    @GetMapping("/member/onboarding")
+    public ResponseEntity<MemberOnboardingResponse> getMemberOnboarding(@ApiIgnore Authentication authentication) {
+        return ResponseEntity.ok(memberService.getOnboardingStatus((MemberAuthDto) authentication.getPrincipal()));
     }
 
     @PostMapping("/member/agreement")

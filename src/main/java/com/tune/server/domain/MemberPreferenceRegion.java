@@ -21,10 +21,10 @@ public class MemberPreferenceRegion {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "member_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @JoinColumn(name = "member_id", referencedColumnName = "id")
     private Member member;
 
     @ManyToOne
-    @JoinColumn(name = "region_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @JoinColumn(name = "region_id", referencedColumnName = "id")
     private Region region;
 }

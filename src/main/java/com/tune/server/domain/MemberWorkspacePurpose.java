@@ -20,10 +20,10 @@ public class MemberWorkspacePurpose {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "member_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @JoinColumn(name = "member_id", referencedColumnName = "id")
     private Member member;
 
     @ManyToOne
-    @JoinColumn(name = "workspace_purpose_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @JoinColumn(name = "workspace_purpose_id", referencedColumnName = "id")
     private WorkspacePurpose purpose;
 }

@@ -7,6 +7,7 @@ import com.tune.server.dto.request.MemberAgreementRequest;
 import com.tune.server.dto.request.MemberNameRequest;
 import com.tune.server.dto.request.MemberPreferenceRegionRequest;
 import com.tune.server.dto.request.MemberPurposeRequest;
+import com.tune.server.dto.response.MemberOnboardingResponse;
 import com.tune.server.exceptions.login.TokenExpiredException;
 import com.tune.server.exceptions.member.InvalidRequestException;
 import com.tune.server.exceptions.member.MemberNotFoundException;
@@ -20,7 +21,6 @@ import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -201,6 +201,26 @@ public class MemberServiceImpl implements MemberService {
 
         memberWorkspacePurposeRepository.saveAll(memberWorkspacePurposes);
         return memberRepository.save(member);
+    }
+
+    @Override
+    public MemberOnboardingResponse getOnboardingStatus(MemberAuthDto principal) {
+        MemberOnboardingResponse response = new MemberOnboardingResponse();
+        Member member = memberRepository.findById(principal.getId()).orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
+
+        response.setNickname_status(member.getName() != null);
+        response.setTerms_of_service_status(member.getMarketingAgreement() != null && member.getPersonalInformationAgreement() != null);
+
+        List<MemberPurpose> memberPurposes = memberPurposeRepository.findAllByMember(member);
+        response.setMember_purpose_status(memberPurposes.size() > 0);
+
+        List<MemberWorkspacePurpose> memberWorkspacePurposes = memberWorkspacePurposeRepository.findAllByMember(member);
+        response.setMember_preference_workspace_status(memberWorkspacePurposes.size() > 0);
+
+        List<MemberPreferenceRegion> memberPreferenceRegions = memberPreferenceRegionRepository.findAllByMember(member);
+        response.setMember_preference_region_status(memberPreferenceRegions.size() > 0);
+
+        return response;
     }
 
 }
