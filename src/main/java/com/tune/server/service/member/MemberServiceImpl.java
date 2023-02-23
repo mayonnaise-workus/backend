@@ -8,6 +8,7 @@ import com.tune.server.dto.request.MemberNameRequest;
 import com.tune.server.dto.request.MemberPreferenceRegionRequest;
 import com.tune.server.dto.request.MemberPurposeRequest;
 import com.tune.server.dto.response.MemberOnboardingResponse;
+import com.tune.server.enums.MemberPreferenceEnum;
 import com.tune.server.enums.TagTypeEnum;
 import com.tune.server.exceptions.login.TokenExpiredException;
 import com.tune.server.exceptions.member.InvalidRequestException;
@@ -29,13 +30,9 @@ import java.util.*;
 public class MemberServiceImpl implements MemberService {
 
     private TagRepository tagRepository;
-    private MemberWorkspacePurposeRepository memberWorkspacePurposeRepository;
-    private MemberPurposeRepository memberPurposeRepository;
     private MemberProviderRepository memberProviderRepository;
     private MemberRepository memberRepository;
-
-    private MemberPreferenceRegionRepository memberPreferenceRegionRepository;
-
+    private MemberPreferenceRepository memberPreferenceRepository;
     @Override
     public boolean isExistMember(KakaoUserInfo id) {
         Optional<MemberProvider> memberProvider = memberProviderRepository.findByProviderIdAndAndProvider(id.getId().toString(), "KAKAO");
@@ -142,18 +139,19 @@ public class MemberServiceImpl implements MemberService {
             throw new InvalidRequestException("필수 파라미터가 누락되었습니다.");
         }
 
-        Set<MemberPreferenceRegion> memberPreferenceRegions = new HashSet<>();
+        Set<MemberPreference> memberPreferenceRegions = new HashSet<>();
         for (Long locationId : request.getLocation_ids()) {
             memberPreferenceRegions.add(
-                    MemberPreferenceRegion.builder()
+                    MemberPreference.builder()
+                            .type(MemberPreferenceEnum.REGION)
                             .member(member)
-                            .region(tagRepository.findTagByTypeAndAndTagId(TagTypeEnum.WORKSPACE_REGION, locationId).orElseThrow(() -> new InvalidRequestException("존재하지 않는 지역입니다.")))
+                            .tag(tagRepository.findTagByTypeAndTagId(TagTypeEnum.REGION, locationId).orElseThrow(() -> new InvalidRequestException("존재하지 않는 지역입니다.")))
                             .build()
             );
         }
 
 
-        memberPreferenceRegionRepository.saveAll(memberPreferenceRegions);
+        memberPreferenceRepository.saveAll(memberPreferenceRegions);
         return memberRepository.save(member);
     }
 
@@ -166,17 +164,18 @@ public class MemberServiceImpl implements MemberService {
             throw new InvalidRequestException("필수 파라미터가 누락되었습니다.");
         }
 
-        Set<MemberPurpose> memberPurposes = new HashSet<>();
+        Set<MemberPreference> memberPurposes = new HashSet<>();
         for(Long purposeId: request.getPurpose_ids()) {
             memberPurposes.add(
-                    MemberPurpose.builder()
+                    MemberPreference.builder()
+                            .type(MemberPreferenceEnum.PURPOSE)
                             .member(member)
-                            .purpose(tagRepository.findTagByTypeAndAndTagId(TagTypeEnum.WORKSPACE_PURPOSE, purposeId).orElseThrow(() -> new InvalidRequestException("존재하지 않는 목적입니다.")))
+                            .tag(tagRepository.findTagByTypeAndTagId(TagTypeEnum.PURPOSE, purposeId).orElseThrow(() -> new InvalidRequestException("존재하지 않는 목적입니다.")))
                             .build()
             );
         }
 
-        memberPurposeRepository.saveAll(memberPurposes);
+        memberPreferenceRepository.saveAll(memberPurposes);
         return memberRepository.save(member);
     }
 
@@ -191,17 +190,18 @@ public class MemberServiceImpl implements MemberService {
             throw new InvalidRequestException("최대 3개의 선택지를 선택할 수 있습니다.");
         }
 
-        Set<MemberWorkspacePurpose> memberWorkspacePurposes = new HashSet<>();
+        Set<MemberPreference> memberWorkspacePurposes = new HashSet<>();
         for(Long id: request.getPurpose_ids()) {
             memberWorkspacePurposes.add(
-                    MemberWorkspacePurpose.builder()
+                    MemberPreference.builder()
+                            .type(MemberPreferenceEnum.WORKSPACE_CATEGORY)
                             .member(member)
-                            .purpose(tagRepository.findTagByTypeAndAndTagId(TagTypeEnum.WORKSPACE_PURPOSE, id).orElseThrow(() -> new InvalidRequestException("존재하지 않는 목적입니다.")))
+                            .tag(tagRepository.findTagByTypeAndTagId(TagTypeEnum.CATEGORY, id).orElseThrow(() -> new InvalidRequestException("존재하지 않는 목적입니다.")))
                             .build()
             );
         }
 
-        memberWorkspacePurposeRepository.saveAll(memberWorkspacePurposes);
+        memberPreferenceRepository.saveAll(memberWorkspacePurposes);
         return memberRepository.save(member);
     }
 
@@ -213,13 +213,13 @@ public class MemberServiceImpl implements MemberService {
         response.setNickname_status(member.getName() != null);
         response.setTerms_of_service_status(member.getMarketingAgreement() != null && member.getPersonalInformationAgreement() != null);
 
-        List<MemberPurpose> memberPurposes = memberPurposeRepository.findAllByMember(member);
+        List<MemberPreference> memberPurposes = memberPreferenceRepository.findAllByMemberAndType(member, MemberPreferenceEnum.PURPOSE);
         response.setMember_purpose_status(memberPurposes.size() > 0);
 
-        List<MemberWorkspacePurpose> memberWorkspacePurposes = memberWorkspacePurposeRepository.findAllByMember(member);
+        List<MemberPreference> memberWorkspacePurposes = memberPreferenceRepository.findAllByMemberAndType(member, MemberPreferenceEnum.WORKSPACE_CATEGORY);
         response.setMember_preference_workspace_status(memberWorkspacePurposes.size() > 0);
 
-        List<MemberPreferenceRegion> memberPreferenceRegions = memberPreferenceRegionRepository.findAllByMember(member);
+        List<MemberPreference> memberPreferenceRegions = memberPreferenceRepository.findAllByMemberAndType(member, MemberPreferenceEnum.REGION);
         response.setMember_preference_region_status(memberPreferenceRegions.size() > 0);
 
         return response;

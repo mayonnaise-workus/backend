@@ -1,6 +1,6 @@
 package com.tune.server.domain;
 
-
+import com.tune.server.enums.WorkspaceTagEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,19 +13,21 @@ import javax.persistence.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "member_purpose")
-public class MemberPurpose {
-
+@Table(name = "workspace_tag")
+public class WorkspaceTag {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "member_id", referencedColumnName = "id")
-    private Member member;
+    @JoinColumn(name = "workspace_id", referencedColumnName = "id")
+    private Workspace workspace;
+
+    @Column(name = "type")
+    private WorkspaceTagEnum type;
 
     @ManyToOne
-    @JoinColumn(name = "purpose_id", referencedColumnName = "id")
-    private Tag purpose;
+    @JoinColumn(name = "tag_id", referencedColumnName = "id")
+    private Tag tag;
 }

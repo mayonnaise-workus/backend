@@ -8,6 +8,7 @@ import com.tune.server.dto.request.MemberNameRequest;
 import com.tune.server.dto.request.MemberPreferenceRegionRequest;
 import com.tune.server.dto.request.MemberPurposeRequest;
 import com.tune.server.dto.response.MemberOnboardingResponse;
+import com.tune.server.enums.MemberPreferenceEnum;
 import com.tune.server.exceptions.login.TokenExpiredException;
 import com.tune.server.exceptions.member.InvalidRequestException;
 import com.tune.server.exceptions.member.MemberNotFoundException;
@@ -26,7 +27,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -34,10 +34,6 @@ import static org.junit.jupiter.api.Assertions.*;
 @Import(MemberServiceImpl.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class MemberServiceTest {
-    @Autowired
-    private MemberWorkspacePurposeRepository memberWorkspacePurposeRepository;
-    @Autowired
-    private MemberPurposeRepository memberPurposeRepository;
 
     @Autowired
     private MemberProviderRepository memberProviderRepository;
@@ -45,10 +41,10 @@ class MemberServiceTest {
     private MemberRepository memberRepository;
 
     @Autowired
+    private MemberPreferenceRepository memberPreferenceRepository;
+    @Autowired
     private MemberService memberService;
 
-    @Autowired
-    private MemberPreferenceRegionRepository memberPreferenceRegionRepository;
 
     @BeforeAll
     void beforeAll() throws SQLException {
@@ -312,7 +308,7 @@ class MemberServiceTest {
         // then
         assertEquals(member.getId(), result.getId());
 
-        List<MemberPreferenceRegion> memberPreferenceRegions = memberPreferenceRegionRepository.findAllByMember(member);
+        List<MemberPreference> memberPreferenceRegions = memberPreferenceRepository.findAllByMemberAndType(member, MemberPreferenceEnum.REGION);
         assertEquals(3, memberPreferenceRegions.size());
     }
 
@@ -381,7 +377,7 @@ class MemberServiceTest {
         // then
         assertEquals(member.getId(), result.getId());
 
-        List<MemberPurpose> memberPurposes = memberPurposeRepository.findAllByMember(member);
+        List<MemberPreference> memberPurposes = memberPreferenceRepository.findAllByMemberAndType(member, MemberPreferenceEnum.PURPOSE);
         assertEquals(3, memberPurposes.size());
     }
 
@@ -435,7 +431,7 @@ class MemberServiceTest {
         // then
         assertEquals(member.getId(), result.getId());
 
-        List<MemberWorkspacePurpose> memberPurposes = memberWorkspacePurposeRepository.findAllByMember(member);
+        List<MemberPreference> memberPurposes = memberPreferenceRepository.findAllByMemberAndType(member, MemberPreferenceEnum.WORKSPACE_CATEGORY);
         assertEquals(3, memberPurposes.size());
     }
 

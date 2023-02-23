@@ -1,7 +1,7 @@
 package com.tune.server.dto.response;
 
 
-import com.tune.server.domain.MemberPreferenceRegion;
+import com.tune.server.domain.MemberPreference;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
@@ -17,14 +17,14 @@ public class RegionResponse {
     private Long id;
     private String name;
 
-    public static RegionResponse of(MemberPreferenceRegion memberPreferenceRegion) {
+    public static RegionResponse of(MemberPreference memberPreferenceRegion) {
         return RegionResponse.builder()
-                .id(memberPreferenceRegion.getRegion().getId())
-                .name(memberPreferenceRegion.getRegion().getTagName())
+                .id(memberPreferenceRegion.getTag().getId())
+                .name(memberPreferenceRegion.getTag().getTagName())
                 .build();
     }
 
-    public static List<RegionResponse> of(Set<MemberPreferenceRegion> memberPreferenceRegion) {
+    public static List<RegionResponse> of(Set<MemberPreference> memberPreferenceRegion) {
         return memberPreferenceRegion.stream()
                 .map(RegionResponse::of)
                 .collect(Collectors.toList());
