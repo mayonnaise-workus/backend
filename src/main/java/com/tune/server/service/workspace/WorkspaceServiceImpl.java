@@ -26,7 +26,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         Set<WorkspaceListResponse> workspaceList = new HashSet<>();
 
         List<Tag> regionTags = new LinkedList<>();
-        if (regions.size() == 0 || regions.get(0) == 0) {
+        if (regions == null || regions.size() == 0 || regions.get(0) == 0) {
             regionTags = tagRepository.findAllByType(TagTypeEnum.REGION);
         } else {
             for(Long region: regions) {
