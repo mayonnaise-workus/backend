@@ -1,5 +1,6 @@
 package com.tune.server.domain;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,15 +13,26 @@ import javax.persistence.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "purpose")
-public class Purpose {
+@Table(name = "workspace")
+public class Workspace {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "purpose")
-    private String purpose;
+    @Column(name = "name")
+    private String name;
 
+    @Column(name = "profile_img")
+    private String profileImg;
+
+    @Column(name = "address")
+    private String address;
+
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
 }

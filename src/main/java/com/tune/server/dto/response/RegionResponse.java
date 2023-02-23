@@ -20,7 +20,7 @@ public class RegionResponse {
     public static RegionResponse of(MemberPreferenceRegion memberPreferenceRegion) {
         return RegionResponse.builder()
                 .id(memberPreferenceRegion.getRegion().getId())
-                .name(memberPreferenceRegion.getRegion().getName())
+                .name(memberPreferenceRegion.getRegion().getTagName())
                 .build();
     }
 

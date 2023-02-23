@@ -1,19 +1,15 @@
 package com.tune.server.controller;
 
-import com.tune.server.domain.Member;
 import com.tune.server.dto.MemberAuthDto;
 import com.tune.server.dto.request.MemberAgreementRequest;
 import com.tune.server.dto.request.MemberNameRequest;
 import com.tune.server.dto.request.MemberPreferenceRegionRequest;
 import com.tune.server.dto.request.MemberPurposeRequest;
 import com.tune.server.dto.response.MemberOnboardingResponse;
-import com.tune.server.dto.response.MemberPreferenceResponse;
 import com.tune.server.dto.response.MemberResponse;
 import com.tune.server.service.member.MemberService;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.AllArgsConstructor;

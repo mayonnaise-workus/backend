@@ -27,5 +27,5 @@ public class MemberPurpose {
 
     @ManyToOne
     @JoinColumn(name = "purpose_id", referencedColumnName = "id")
-    private Purpose purpose;
+    private Tag purpose;
 }

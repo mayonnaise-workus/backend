@@ -1,15 +1,10 @@
 package com.tune.server.dto.response;
 
 import com.tune.server.domain.Member;
-import com.tune.server.domain.MemberPreferenceRegion;
-import com.tune.server.domain.MemberPurpose;
-import com.tune.server.domain.Region;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
-
-import java.util.List;
 
 @Getter
 @Builder

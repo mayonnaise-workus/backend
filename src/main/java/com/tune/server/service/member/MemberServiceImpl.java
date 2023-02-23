@@ -8,6 +8,7 @@ import com.tune.server.dto.request.MemberNameRequest;
 import com.tune.server.dto.request.MemberPreferenceRegionRequest;
 import com.tune.server.dto.request.MemberPurposeRequest;
 import com.tune.server.dto.response.MemberOnboardingResponse;
+import com.tune.server.enums.TagTypeEnum;
 import com.tune.server.exceptions.login.TokenExpiredException;
 import com.tune.server.exceptions.member.InvalidRequestException;
 import com.tune.server.exceptions.member.MemberNotFoundException;
@@ -27,14 +28,11 @@ import java.util.*;
 @AllArgsConstructor
 public class MemberServiceImpl implements MemberService {
 
-    private WorkspacePurposeRepository workspacePurposeRepository;
+    private TagRepository tagRepository;
     private MemberWorkspacePurposeRepository memberWorkspacePurposeRepository;
     private MemberPurposeRepository memberPurposeRepository;
-    private PurposeRepository purposeRepository;
     private MemberProviderRepository memberProviderRepository;
     private MemberRepository memberRepository;
-
-    private RegionRepository regionRepository;
 
     private MemberPreferenceRegionRepository memberPreferenceRegionRepository;
 
@@ -146,12 +144,14 @@ public class MemberServiceImpl implements MemberService {
 
         Set<MemberPreferenceRegion> memberPreferenceRegions = new HashSet<>();
         for (Long locationId : request.getLocation_ids()) {
-            MemberPreferenceRegion memberPreferenceRegion = MemberPreferenceRegion.builder()
-                    .region(regionRepository.findById(locationId).orElseThrow(() -> new InvalidRequestException("존재하지 않는 지역입니다.")))
-                    .member(member)
-                    .build();
-            memberPreferenceRegions.add(memberPreferenceRegion);
+            memberPreferenceRegions.add(
+                    MemberPreferenceRegion.builder()
+                            .member(member)
+                            .region(tagRepository.findTagByTypeAndAndTagId(TagTypeEnum.WORKSPACE_REGION, locationId).orElseThrow(() -> new InvalidRequestException("존재하지 않는 지역입니다.")))
+                            .build()
+            );
         }
+
 
         memberPreferenceRegionRepository.saveAll(memberPreferenceRegions);
         return memberRepository.save(member);
@@ -168,11 +168,12 @@ public class MemberServiceImpl implements MemberService {
 
         Set<MemberPurpose> memberPurposes = new HashSet<>();
         for(Long purposeId: request.getPurpose_ids()) {
-            MemberPurpose memberPurpose = purposeRepository.findById(purposeId).map(purpose -> MemberPurpose.builder()
-                    .purpose(purpose)
-                    .member(member)
-                    .build()).orElseThrow(() -> new InvalidRequestException("존재하지 않는 목적입니다."));
-            memberPurposes.add(memberPurpose);
+            memberPurposes.add(
+                    MemberPurpose.builder()
+                            .member(member)
+                            .purpose(tagRepository.findTagByTypeAndAndTagId(TagTypeEnum.WORKSPACE_PURPOSE, purposeId).orElseThrow(() -> new InvalidRequestException("존재하지 않는 목적입니다.")))
+                            .build()
+            );
         }
 
         memberPurposeRepository.saveAll(memberPurposes);
@@ -192,11 +193,12 @@ public class MemberServiceImpl implements MemberService {
 
         Set<MemberWorkspacePurpose> memberWorkspacePurposes = new HashSet<>();
         for(Long id: request.getPurpose_ids()) {
-            MemberWorkspacePurpose memberWorkspacePurpose = workspacePurposeRepository.findById(id).map(purpose -> MemberWorkspacePurpose.builder()
-                    .purpose(purpose)
-                    .member(member)
-                    .build()).orElseThrow(() -> new InvalidRequestException("존재하지 않는 목적입니다."));
-            memberWorkspacePurposes.add(memberWorkspacePurpose);
+            memberWorkspacePurposes.add(
+                    MemberWorkspacePurpose.builder()
+                            .member(member)
+                            .purpose(tagRepository.findTagByTypeAndAndTagId(TagTypeEnum.WORKSPACE_PURPOSE, id).orElseThrow(() -> new InvalidRequestException("존재하지 않는 목적입니다.")))
+                            .build()
+            );
         }
 
         memberWorkspacePurposeRepository.saveAll(memberWorkspacePurposes);

@@ -34,22 +34,17 @@ import static org.junit.jupiter.api.Assertions.*;
 @Import(MemberServiceImpl.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class MemberServiceTest {
-
-    @Autowired
-    private WorkspacePurposeRepository workspacePurposeRepository;
     @Autowired
     private MemberWorkspacePurposeRepository memberWorkspacePurposeRepository;
     @Autowired
     private MemberPurposeRepository memberPurposeRepository;
-    @Autowired
-    private PurposeRepository purposeRepository;
+
     @Autowired
     private MemberProviderRepository memberProviderRepository;
     @Autowired
     private MemberRepository memberRepository;
 
     @Autowired
-    private RegionRepository regionRepository;
     private MemberService memberService;
 
     @Autowired
@@ -57,16 +52,6 @@ class MemberServiceTest {
 
     @BeforeAll
     void beforeAll() throws SQLException {
-        memberService = new MemberServiceImpl(
-                workspacePurposeRepository,
-                memberWorkspacePurposeRepository,
-                memberPurposeRepository,
-                purposeRepository,
-                memberProviderRepository,
-                memberRepository,
-                regionRepository,
-                memberPreferenceRegionRepository
-        );
         JwtUtil.JWT_SECRET_KEY = "Jo73VnKMoZCBEgBloGffXFTDsZxRZ9fN5geXS3nX0wE";
     }
     @Test

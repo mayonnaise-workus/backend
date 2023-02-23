@@ -26,5 +26,5 @@ public class MemberPreferenceRegion {
 
     @ManyToOne
     @JoinColumn(name = "region_id", referencedColumnName = "id")
-    private Region region;
+    private Tag region;
 }

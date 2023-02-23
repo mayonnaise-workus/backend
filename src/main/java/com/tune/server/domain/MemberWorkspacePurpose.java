@@ -25,5 +25,5 @@ public class MemberWorkspacePurpose {
 
     @ManyToOne
     @JoinColumn(name = "workspace_purpose_id", referencedColumnName = "id")
-    private WorkspacePurpose purpose;
+    private Tag purpose;
 }
