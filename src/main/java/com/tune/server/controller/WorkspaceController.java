@@ -24,7 +24,7 @@ public class WorkspaceController {
 
     @GetMapping("/workspace/list")
     @ApiOperation(value = "워크 스페이스 리스트 조회", notes = "워크 스페이스 리스트를 조회합니다.")
-    public ResponseEntity<List<WorkspaceListResponse>> getWorkSpaceList(@ApiIgnore Authentication authentication, @RequestParam("region") List<Long> regions) {
+    public ResponseEntity<List<WorkspaceListResponse>> getWorkSpaceList(@ApiIgnore Authentication authentication, @RequestParam(value = "region", required = false) List<Long> regions) {
         return ResponseEntity.ok(workspaceService.getWorkSpaceList(regions));
     }
 }
