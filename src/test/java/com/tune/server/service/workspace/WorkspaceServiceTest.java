@@ -78,4 +78,29 @@ public class WorkspaceServiceTest {
         assertThrows(IllegalArgumentException.class, () -> workspaceService.getWorkSpaceList(regions));
     }
 
+    @Test
+    @DisplayName("워크스페이스 리스트 조회 - 선택한 지역이 없는 경우 전체 워크스페이스를 조회한다.")
+    void getWorkSpaceList5() {
+        // given
+        List<Long> regions = List.of();
+
+        // when
+        List<WorkspaceListResponse> workSpaceList = workspaceService.getWorkSpaceList(regions);
+
+        // then
+        assertEquals(5, workSpaceList.size());
+    }
+
+    @Test
+    @DisplayName("워크스페이스 리스트 조회 - 선택한 지역이 0번인 경우 전체 워크스페이스를 조회한다.")
+    void getWorkSpaceList6() {
+        // given
+        List<Long> regions = List.of(0L);
+
+        // when
+        List<WorkspaceListResponse> workSpaceList = workspaceService.getWorkSpaceList(regions);
+
+        // then
+        assertEquals(5, workSpaceList.size());
+    }
 }

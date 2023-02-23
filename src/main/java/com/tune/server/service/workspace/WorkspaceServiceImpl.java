@@ -26,11 +26,16 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         Set<WorkspaceListResponse> workspaceList = new HashSet<>();
 
         List<Tag> regionTags = new LinkedList<>();
-        for(Long region: regions) {
-            regionTags.add(
-                    tagRepository.findTagByTypeAndTagId(TagTypeEnum.REGION, region).orElseThrow(() -> new IllegalArgumentException("지역 태그가 존재하지 않습니다."))
-            );
+        if (regions.size() == 0 || regions.get(0) == 0) {
+            regionTags = tagRepository.findAllByType(TagTypeEnum.REGION);
+        } else {
+            for(Long region: regions) {
+                regionTags.add(
+                        tagRepository.findTagByTypeAndTagId(TagTypeEnum.REGION, region).orElseThrow(() -> new IllegalArgumentException("지역 태그가 존재하지 않습니다."))
+                );
+            }
         }
+
 
         for (Tag regionTag : regionTags) {
             List<WorkspaceTag> workspaceTags = workspaceTagRepository.findAllByTypeAndTag_Id(WorkspaceTagEnum.REGION, regionTag.getId());
