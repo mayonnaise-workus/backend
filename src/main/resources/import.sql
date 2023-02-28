@@ -1,3 +1,6 @@
+INSERT INTO member (id, name, created_at, refresh_token, refresh_token_expires_at) VALUES (999, '테스트 유저', '2023-02-23 08:45:20', '8a0adc35432045c7bc73b4b56ecb9460', '2024-02-23 08:45:20');
+INSERT INTO member_provider (id, provider, provider_id, refresh_token, member_id) VALUES (999, 'KAKAO', '4674574152', 'kq5ygn8-sc5v2d-achiFeDldUEeyQAl9Pg9FonJOCj1zTgAAAYaGcAGF', 999);
+
 INSERT INTO tag (tag_id, type, tag_name) VALUES (1, 0, '개인 공부'), (2, 0, '노트북'), (3, 0, '비대면 회의'), (4, 0, '대면 회의'), (1, 1, '카페'), (2, 1, '스터디 룸'), (3, 1, '스터디 카페'), (4, 1, '회의실'), (5, 1, '공유 오피스'), (6, 1, '도서관'), (7, 1, '북카페'), (8, 1, '라운지'), (1, 2, '강남역'), (2, 2, '선릉역'), (3, 2, '삼성역'), (4, 2, '역삼역'), (5, 2, '논현역'), (1, 3, '1인'), (2, 3, '2인 ~ 4인'), (3, 3, '5인 ~ 9인'), (4, 3, '10인 이상'), (5, 3, '기타');
 INSERT INTO workspace (name, profile_img, address, latitude, longitude) VALUES ('THE SPACE 몰입 강남점', 'https://pcmap.place.naver.com/restaurant/1597463093/home?from=map&fromPanelNum=1&ts=1677130727486#', '서울 서초구 서운로 164', 37.4981263, 127.0253284);
 INSERT INTO workspace_tag (workspace_id, type, tag_id) VALUES (1, 0, 13);
