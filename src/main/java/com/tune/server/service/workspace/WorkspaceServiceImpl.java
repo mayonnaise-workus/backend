@@ -2,6 +2,7 @@ package com.tune.server.service.workspace;
 
 import com.tune.server.domain.Tag;
 import com.tune.server.domain.WorkspaceTag;
+import com.tune.server.dto.response.WorkspaceDetailResponse;
 import com.tune.server.dto.response.WorkspaceListResponse;
 import com.tune.server.enums.TagTypeEnum;
 import com.tune.server.enums.WorkspaceTagEnum;
@@ -50,11 +51,16 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 
         for(WorkspaceListResponse workspace : workspaceList) {
             List<WorkspaceTag> workspaceTags = workspaceTagRepository.findAllByWorkspace_Id(workspace.getId());
-            workspace.setWorkspace_type(workspaceTags.stream().filter(workspaceTag -> workspaceTag.getType() == WorkspaceTagEnum.CATEGORY).map(workspaceTag -> workspaceTag.getTag().getTagId()).collect(Collectors.toList()));
-            workspace.setWorkspace_obj(workspaceTags.stream().filter(workspaceTag -> workspaceTag.getType() == WorkspaceTagEnum.PURPOSE).map(workspaceTag -> workspaceTag.getTag().getTagId()).collect(Collectors.toList()));
-            workspace.setWorkspace_capacity(workspaceTags.stream().filter(workspaceTag -> workspaceTag.getType() == WorkspaceTagEnum.CAPACITY).map(workspaceTag -> workspaceTag.getTag().getTagId()).collect(Collectors.toList()));
+            workspace.setWorkspace_type(workspaceTags.stream().filter(workspaceTag -> workspaceTag.getType() == WorkspaceTagEnum.CATEGORY).map(workspaceTag -> workspaceTag.getTag().getTagId()).collect(Collectors.toList()).get(0));
+            workspace.setWorkspace_obj(workspaceTags.stream().filter(workspaceTag -> workspaceTag.getType() == WorkspaceTagEnum.PURPOSE).map(workspaceTag -> workspaceTag.getTag().getTagId()).collect(Collectors.toList()).get(0));
+            workspace.setWorkspace_capacity(workspaceTags.stream().filter(workspaceTag -> workspaceTag.getType() == WorkspaceTagEnum.CAPACITY).map(workspaceTag -> workspaceTag.getTag().getTagId()).collect(Collectors.toList()).get(0));
         }
 
         return List.copyOf(workspaceList);
+    }
+
+    @Override
+    public WorkspaceDetailResponse getWorkSpaceDetail(Long id) {
+        return null;
     }
 }

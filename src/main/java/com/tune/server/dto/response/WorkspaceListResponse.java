@@ -33,15 +33,15 @@ public class WorkspaceListResponse {
 
     @Setter
     @ApiModelProperty(value = "워크스페이스 카테고리 (카페|스터디 카페|스터디룸|...)")
-    List<Long> workspace_type;
+    Long workspace_type;
 
     @Setter
     @ApiModelProperty(value = "워크스페이스 업무 목적 (노트북|대면 회의|비대면 회의)")
-    List<Long> workspace_obj;
+    Long workspace_obj;
 
     @Setter
     @ApiModelProperty(value = "워크스페이스 수용 가능 인원")
-    List<Long> workspace_capacity;
+    Long workspace_capacity;
 
     public static WorkspaceListResponse of(WorkspaceTag workspaceTag) {
         return WorkspaceListResponse.builder()
