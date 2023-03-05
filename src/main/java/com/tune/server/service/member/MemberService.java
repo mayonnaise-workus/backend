@@ -2,6 +2,7 @@ package com.tune.server.service.member;
 
 import com.tune.server.domain.Member;
 import com.tune.server.dto.MemberAuthDto;
+import com.tune.server.dto.apple.AppleAuthTokenDto;
 import com.tune.server.dto.kakao.KakaoUserInfo;
 import com.tune.server.dto.request.MemberAgreementRequest;
 import com.tune.server.dto.request.MemberNameRequest;
@@ -15,11 +16,12 @@ import java.util.Map;
 @Service
 public interface MemberService {
     boolean isExistMember(KakaoUserInfo kakaoUserInfo);
-
+    boolean isExistMember(AppleAuthTokenDto appleAuthTokenDto);
     boolean signUp(KakaoUserInfo kakaoUserInfo);
+    boolean signUp(AppleAuthTokenDto appleAuthTokenDto);
 
     Member getMember(KakaoUserInfo kakaoUserInfo);
-
+    Member getMember(AppleAuthTokenDto appleAuthTokenDto);
     Map<String, String> refresh(String refreshToken);
 
     Member updateAgreement(MemberAuthDto member, MemberAgreementRequest request);
@@ -35,4 +37,5 @@ public interface MemberService {
     Member updateWorkspacePurpose(MemberAuthDto principal, MemberPurposeRequest request);
 
     MemberOnboardingResponse getOnboardingStatus(MemberAuthDto principal);
+
 }

@@ -34,3 +34,8 @@ server:
 external:
   jwt:
     secret: ${JWT_SECRET}
+  apple:
+    client-id: ${APPLE_CLIENT_ID}
+    team-id: ${APPLE_TEAM_ID}
+    bundle-id: ${APPLE_TEAM_ID}
+    private-key: ${APPLE_PRIVATE_KEY}

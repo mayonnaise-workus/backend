@@ -1,6 +1,7 @@
 package com.tune.server.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tune.server.filter.AppleLoginFilter;
 import com.tune.server.filter.ExceptionHandlerFilter;
 import com.tune.server.filter.JwtAuthenticationFilter;
 import com.tune.server.filter.KakaoLoginFilter;
@@ -47,6 +48,7 @@ public class SecurityConfig {
                     .antMatchers("/member/**").authenticated()
                 .and()
                 .addFilterBefore(new KakaoLoginFilter("/login/kakao", objectMapper, memberService), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new AppleLoginFilter("/login/apple", objectMapper, memberService), KakaoLoginFilter.class)
                 .addFilterBefore(new ExceptionHandlerFilter(), KakaoLoginFilter.class)
                 .addFilterAfter(new JwtAuthenticationFilter(objectMapper, memberService), KakaoLoginFilter.class)
                 .build();

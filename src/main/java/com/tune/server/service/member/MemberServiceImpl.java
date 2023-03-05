@@ -2,6 +2,7 @@ package com.tune.server.service.member;
 
 import com.tune.server.domain.*;
 import com.tune.server.dto.MemberAuthDto;
+import com.tune.server.dto.apple.AppleAuthTokenDto;
 import com.tune.server.dto.kakao.KakaoUserInfo;
 import com.tune.server.dto.request.MemberAgreementRequest;
 import com.tune.server.dto.request.MemberNameRequest;
@@ -40,6 +41,11 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    public boolean isExistMember(AppleAuthTokenDto appleAuthTokenDto) {
+        return memberProviderRepository.findByProviderIdAndAndProvider(appleAuthTokenDto.getUser_id(), "APPLE").isPresent();
+    }
+
+    @Override
     @Transactional
     public boolean signUp(KakaoUserInfo kakaoUserInfo) {
         try {
@@ -66,9 +72,41 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    public boolean signUp(AppleAuthTokenDto appleAuthTokenDto) {
+        try {
+            Member member = Member
+                    .builder()
+                    .refreshToken(JwtUtil.generateRefreshToken())
+                    .refreshTokenExpiresAt(LocalDateTime.now().plusMonths(JwtUtil.REFRESH_TOKEN_EXPIRES_MONTH))
+                    .build();
+
+            MemberProvider memberProvider = MemberProvider.builder()
+                    .providerId(appleAuthTokenDto.getUser_id())
+                    .refreshToken(appleAuthTokenDto.getRefresh_token())
+                    .member(member)
+                    .provider("APPLE")
+                    .build();
+
+            memberRepository.save(member);
+            memberProviderRepository.save(memberProvider);
+            return true;
+        } catch (Exception e) {
+            log.error("회원가입 실패", e);
+            return false;
+        }
+    }
+
+    @Override
     public Member getMember(KakaoUserInfo kakaoUserInfo) {
         Optional<MemberProvider> memberProvider = memberProviderRepository.findByProviderIdAndAndProvider(kakaoUserInfo.getId().toString(), "KAKAO");
         return memberProvider.map(MemberProvider::getMember).orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
+    }
+
+    @Override
+    public Member getMember(AppleAuthTokenDto appleAuthTokenDto) {
+        return memberProviderRepository.findByProviderIdAndAndProvider(appleAuthTokenDto.getUser_id(), "APPLE")
+                .map(MemberProvider::getMember)
+                .orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
     }
 
     @Override
