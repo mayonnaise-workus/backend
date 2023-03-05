@@ -47,14 +47,14 @@ public class KakaoLoginFilter extends OncePerRequestFilter {
             String accessToken = kakaoTokenRequest.getAccess_token();
 
             // 1. 카카오 토큰으로 회원 정보 조회
-            // KakaoUserInfo kakaoUserInfo = getKaKaoUserInfo(accessToken);
+            KakaoUserInfo kakaoUserInfo = getKaKaoUserInfo(accessToken);
 
-            // 1-1. Mock KakaoUserInfo
-            KakaoUserInfo kakaoUserInfo = KakaoUserInfo.builder()
-                            .app_id(new Random().nextInt(1000000000))
-                            .id((long) new Random().nextInt(1000000000))
-                            .expires_in(1000000000)
-                    .build();
+//             1-1. Mock KakaoUserInfo
+//            KakaoUserInfo kakaoUserInfo = KakaoUserInfo.builder()
+//                            .app_id(new Random().nextInt(1000000000))
+//                            .id((long) new Random().nextInt(1000000000))
+//                            .expires_in(1000000000)
+//                    .build();
 
             kakaoUserInfo.setRefreshToken(refreshToken);
 
