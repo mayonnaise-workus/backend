@@ -1,5 +1,6 @@
 package com.tune.server.controller;
 
+import com.tune.server.dto.response.WorkspaceDetailResponse;
 import com.tune.server.dto.response.WorkspaceListResponse;
 import com.tune.server.service.workspace.WorkspaceService;
 import io.swagger.annotations.Api;
@@ -26,5 +27,11 @@ public class WorkspaceController {
     @ApiOperation(value = "워크 스페이스 리스트 조회", notes = "워크 스페이스 리스트를 조회합니다.")
     public ResponseEntity<List<WorkspaceListResponse>> getWorkSpaceList(@ApiIgnore Authentication authentication, @RequestParam(value = "region", required = false) List<Long> regions) {
         return ResponseEntity.ok(workspaceService.getWorkSpaceList(regions));
+    }
+
+    @GetMapping("/workspace/{id}")
+    @ApiOperation(value = "워크 스페이스 상세 조회", notes = "워크 스페이스 상세 정보를 조회합니다.")
+    public ResponseEntity<WorkspaceDetailResponse> getWorkSpaceDetail(@ApiIgnore Authentication authentication, @PathVariable Long id) {
+        return ResponseEntity.ok(workspaceService.getWorkSpaceDetail(id));
     }
 }
