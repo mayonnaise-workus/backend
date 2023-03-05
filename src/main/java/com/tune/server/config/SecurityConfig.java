@@ -22,6 +22,8 @@ public class SecurityConfig {
 
     private final ObjectMapper objectMapper;
 
+    private final AppleLoginFilter appleLoginFilter;
+
     private final MemberService memberService;
 
     @Bean
@@ -48,7 +50,7 @@ public class SecurityConfig {
                     .antMatchers("/member/**").authenticated()
                 .and()
                 .addFilterBefore(new KakaoLoginFilter("/login/kakao", objectMapper, memberService), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(new AppleLoginFilter("/login/apple", objectMapper, memberService), KakaoLoginFilter.class)
+                .addFilterBefore(appleLoginFilter, KakaoLoginFilter.class)
                 .addFilterBefore(new ExceptionHandlerFilter(), KakaoLoginFilter.class)
                 .addFilterAfter(new JwtAuthenticationFilter(objectMapper, memberService), KakaoLoginFilter.class)
                 .build();

@@ -10,15 +10,18 @@ import com.tune.server.service.member.MemberService;
 import com.tune.server.util.JwtUtil;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import lombok.NoArgsConstructor;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
@@ -35,31 +38,31 @@ import java.io.StringReader;
 import java.security.PrivateKey;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
+@Component
 public class AppleLoginFilter extends OncePerRequestFilter {
-    private final String SIGNUP_URI;
+    private final String SIGNUP_URI = "/login/apple";
     private final String APPLE_TOKEN_URI = "https://appleid.apple.com/auth/token";
     private final String APPLE_AUDIENCE_URI = "https://appleid.apple.com";
-    private final ObjectMapper objectMapper;
-    private final MemberService memberService;
+    @Autowired
+    private ObjectMapper objectMapper;
 
-    @Value("${external.apple.clientId}")
+    @Autowired
+    private MemberService memberService;
+
+    @Value("${external.apple.bundle-id}")
+    private String bundleId;
+
+    @Value("${external.apple.client-id}")
     private String clientId;
 
-    @Value("${external.apple.teamId}")
+    @Value("${external.apple.team-id}")
     private String teamId;
 
-    @Value("${external.apple.keyId}")
-    private String keyId;
-
-    @Value("${external.apple.privateKey}")
+    @Value("${external.apple.private-key}")
     private String appleSignKey;
-
-    public AppleLoginFilter(String signupUri, ObjectMapper objectMapper, MemberService memberService) {
-        this.SIGNUP_URI = signupUri;
-        this.objectMapper = objectMapper;
-        this.memberService = memberService;
-    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -102,7 +105,7 @@ public class AppleLoginFilter extends OncePerRequestFilter {
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("code", appleLoginRequest.getAuthorizationCode());
-        params.add("client_id", teamId);
+        params.add("client_id", clientId);
         params.add("client_secret", generateAppleSignKey());
         params.add("grant_type", "authorization_code");
 
@@ -110,29 +113,34 @@ public class AppleLoginFilter extends OncePerRequestFilter {
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(params, headers);
-
         try {
+            System.out.println(generateAppleSignKey());
             ResponseEntity<AppleAuthTokenDto> response = restTemplate.postForEntity(APPLE_TOKEN_URI, httpEntity, AppleAuthTokenDto.class);
             return response.getBody();
         } catch (HttpClientErrorException e) {
+            e.printStackTrace();
             throw new IllegalArgumentException("Apple Auth Token Error");
         }
     }
 
     private String generateAppleSignKey() {
         try {
-            PrivateKey privateKey = getPrivateKey();
+            Date now = new Date();
+            Map<String, Object> jwtHeader = new HashMap<>();
+            jwtHeader.put("kid", clientId);
+            jwtHeader.put("alg", "ES256");
+
             return Jwts.builder()
-                    .setHeaderParam("kid", keyId)
-                    .setHeaderParam("alg", "ES256")
+                    .setHeaderParams(jwtHeader)
                     .setIssuer(teamId)
-                    .setIssuedAt(new Date())
+                    .setIssuedAt(now) // 발행 시간 - UNIX 시간
+                    .setExpiration(new Date(now.getTime() + 8640000)) // 만료 시간
                     .setAudience(APPLE_AUDIENCE_URI)
-                    .setExpiration(new Date(System.currentTimeMillis() + 86400000))
-                    .setSubject(clientId)
-                    .signWith(privateKey, SignatureAlgorithm.ES256)
+                    .setSubject(bundleId)
+                    .signWith(SignatureAlgorithm.ES256, getPrivateKey())
                     .compact();
         } catch (Exception e) {
+            e.printStackTrace();
             throw new IllegalArgumentException("Apple Sign Key Error");
         }
     }

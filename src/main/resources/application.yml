@@ -34,7 +34,7 @@ spring:
       enabled: always
 
 server:
-  port: 8081
+  port: 8080
 
 external:
   jwt:
@@ -42,5 +42,5 @@ external:
   apple:
     client-id: ${APPLE_CLIENT_ID}
     team-id: ${APPLE_TEAM_ID}
-    bundle-id: ${APPLE_TEAM_ID}
+    bundle-id: ${APPLE_BUNDLE_ID}
     private-key: ${APPLE_PRIVATE_KEY}
