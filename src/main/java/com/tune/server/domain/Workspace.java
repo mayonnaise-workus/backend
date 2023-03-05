@@ -24,6 +24,9 @@ public class Workspace {
     @Column(name = "name")
     private String name;
 
+    @Column(name = "contact")
+    private String contact;
+
     @Column(name = "profile_img")
     private String profileImg;
 
@@ -35,4 +38,11 @@ public class Workspace {
 
     @Column(name = "longitude")
     private Double longitude;
+
+    @Column(name = "homepage_url")
+    private String homepage;
+
+    @Column(name = "info_url")
+    private String infoUrl = "";
+
 }
