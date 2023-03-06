@@ -10,7 +10,6 @@ import com.tune.server.service.member.MemberService;
 import com.tune.server.util.JwtUtil;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import lombok.NoArgsConstructor;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
@@ -22,6 +21,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
@@ -36,10 +36,9 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.security.PrivateKey;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.*;
 
 @Component
 public class AppleLoginFilter extends OncePerRequestFilter {
@@ -94,6 +93,7 @@ public class AppleLoginFilter extends OncePerRequestFilter {
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             response.getWriter().write(objectMapper.writeValueAsString(fullTokenResponse));
+
             return;
         }
 
@@ -124,13 +124,14 @@ public class AppleLoginFilter extends OncePerRequestFilter {
 
     private String generateAppleSignKey() {
         try {
+            Date expirationDate = Date.from(LocalDateTime.now().plusDays(30).atZone(ZoneId.systemDefault()).toInstant());
             return Jwts.builder()
                     .setHeaderParam("kid", clientId)
                     .setHeaderParam("alg", "ES256")
                     .setIssuer(teamId)
                     .setAudience(APPLE_AUDIENCE_URI)
                     .setSubject(bundleId)
-                    .setExpiration(new Date(System.currentTimeMillis() + 864000))
+                    .setExpiration(expirationDate)
                     .setIssuedAt(new Date(System.currentTimeMillis()))
                     .signWith(getPrivateKey(), SignatureAlgorithm.ES256)
                     .compact();
