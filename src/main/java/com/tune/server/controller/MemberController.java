@@ -5,8 +5,10 @@ import com.tune.server.dto.request.MemberAgreementRequest;
 import com.tune.server.dto.request.MemberNameRequest;
 import com.tune.server.dto.request.MemberPreferenceRegionRequest;
 import com.tune.server.dto.request.MemberPurposeRequest;
+import com.tune.server.dto.response.ApiStatusResponse;
 import com.tune.server.dto.response.MemberOnboardingResponse;
 import com.tune.server.dto.response.MemberResponse;
+import com.tune.server.dto.response.MemberScrapListResponse;
 import com.tune.server.service.member.MemberService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -15,7 +17,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -137,6 +141,24 @@ public class MemberController {
     @ApiOperation(value = "회원의 워크스페이스 업무 목적 변경", notes = "회원의 워크스페이스 업무 목적을 변경합니다.")
     public ResponseEntity<MemberResponse> updatePreferenceWorkspacePurpose(@ApiIgnore Authentication authentication, @RequestBody MemberPurposeRequest request) {
         return ResponseEntity.ok(MemberResponse.of(memberService.updateWorkspacePurpose((MemberAuthDto) authentication.getPrincipal(), request)));
+    }
+
+    @PostMapping("/member/star/{workspaceId}")
+    @ApiOperation(value = "회원의 워크스페이스 즐겨찾기 추가", notes = "회원의 워크스페이스 즐겨찾기를 추가합니다.")
+    public ResponseEntity<ApiStatusResponse> addStar(@ApiIgnore Authentication authentication, @PathVariable Long workspaceId) {
+        return ResponseEntity.ok(memberService.addStar((MemberAuthDto) authentication.getPrincipal(), workspaceId));
+    }
+
+    @DeleteMapping("/member/star/{workspaceId}")
+    @ApiOperation(value = "회원의 워크스페이스 즐겨찾기 삭제", notes = "회원의 워크스페이스 즐겨찾기를 삭제합니다.")
+    public ResponseEntity<ApiStatusResponse> deleteStar(@ApiIgnore Authentication authentication, @PathVariable Long workspaceId) {
+        return ResponseEntity.ok(memberService.removeStar((MemberAuthDto) authentication.getPrincipal(), workspaceId));
+    }
+
+    @GetMapping("/member/star")
+    @ApiOperation(value = "회원의 워크스페이스 즐겨찾기 목록 조회", notes = "회원의 워크스페이스 즐겨찾기를 목록을 조회합니다.")
+    public ResponseEntity<MemberScrapListResponse> getStarList(@ApiIgnore Authentication authentication) {
+        return ResponseEntity.ok(memberService.getStarList((MemberAuthDto) authentication.getPrincipal()));
     }
 
 }

@@ -1,7 +1,9 @@
 package com.tune.server.dto.response;
 
+import com.tune.server.domain.MemberScrap;
 import com.tune.server.domain.WorkspaceTag;
 import io.swagger.annotations.ApiModelProperty;
+import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -51,6 +53,23 @@ public class WorkspaceListResponse {
                 .latitude(workspaceTag.getWorkspace().getLatitude())
                 .longitude(workspaceTag.getWorkspace().getLongitude())
                 .profile_img(workspaceTag.getWorkspace().getProfileImg())
+                .build();
+    }
+
+    public static List<WorkspaceListResponse> of(List<MemberScrap> scraps) {
+        return scraps.stream()
+                .map(WorkspaceListResponse::of)
+                .collect(Collectors.toList());
+    }
+
+    public static WorkspaceListResponse of(MemberScrap scrap) {
+        return WorkspaceListResponse.builder()
+                .id(scrap.getWorkspace().getId())
+                .name(scrap.getWorkspace().getName())
+                .address(scrap.getWorkspace().getAddress())
+                .latitude(scrap.getWorkspace().getLatitude())
+                .longitude(scrap.getWorkspace().getLongitude())
+                .profile_img(scrap.getWorkspace().getProfileImg())
                 .build();
     }
 

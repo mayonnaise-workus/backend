@@ -8,7 +8,9 @@ import com.tune.server.dto.request.MemberAgreementRequest;
 import com.tune.server.dto.request.MemberNameRequest;
 import com.tune.server.dto.request.MemberPreferenceRegionRequest;
 import com.tune.server.dto.request.MemberPurposeRequest;
+import com.tune.server.dto.response.ApiStatusResponse;
 import com.tune.server.dto.response.MemberOnboardingResponse;
+import com.tune.server.dto.response.MemberScrapListResponse;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -37,5 +39,11 @@ public interface MemberService {
     Member updateWorkspacePurpose(MemberAuthDto principal, MemberPurposeRequest request);
 
     MemberOnboardingResponse getOnboardingStatus(MemberAuthDto principal);
+
+    ApiStatusResponse addStar(MemberAuthDto principal, Long workspaceId);
+    
+    ApiStatusResponse removeStar(MemberAuthDto principal, Long workspaceId);
+
+    MemberScrapListResponse getStarList(MemberAuthDto principal);
 
 }

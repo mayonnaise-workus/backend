@@ -7,12 +7,16 @@ import com.tune.server.dto.request.MemberAgreementRequest;
 import com.tune.server.dto.request.MemberNameRequest;
 import com.tune.server.dto.request.MemberPreferenceRegionRequest;
 import com.tune.server.dto.request.MemberPurposeRequest;
+import com.tune.server.dto.response.ApiStatusResponse;
 import com.tune.server.dto.response.MemberOnboardingResponse;
+import com.tune.server.dto.response.MemberScrapListResponse;
 import com.tune.server.enums.MemberPreferenceEnum;
 import com.tune.server.exceptions.login.TokenExpiredException;
 import com.tune.server.exceptions.member.InvalidRequestException;
 import com.tune.server.exceptions.member.MemberNotFoundException;
+import com.tune.server.exceptions.workspace.WorkspaceNotFoundException;
 import com.tune.server.repository.*;
+import com.tune.server.service.workspace.WorkspaceServiceImpl;
 import com.tune.server.util.JwtUtil;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -27,11 +31,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.springframework.http.HttpStatus;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
-@Import(MemberServiceImpl.class)
+@Import({MemberServiceImpl.class, WorkspaceServiceImpl.class})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class MemberServiceTest {
 
@@ -44,7 +49,6 @@ class MemberServiceTest {
     private MemberPreferenceRepository memberPreferenceRepository;
     @Autowired
     private MemberService memberService;
-
 
     @BeforeAll
     void beforeAll() throws SQLException {
@@ -72,7 +76,7 @@ class MemberServiceTest {
 
 
         // then
-        assertEquals(1, memberRepository.count());
+        assertEquals(2, memberRepository.count());
     }
 
     @Test
@@ -91,8 +95,8 @@ class MemberServiceTest {
 
         // then
         assertTrue(status);
-        assertEquals(1, memberRepository.count());
-        assertEquals(1, memberProviderRepository.count());
+        assertEquals(2, memberRepository.count());
+        assertEquals(2, memberProviderRepository.count());
     }
 
     @Test
@@ -115,7 +119,7 @@ class MemberServiceTest {
         }
 
         // then
-        assertEquals(10, memberRepository.count());
+        assertEquals(11, memberRepository.count());
     }
 
     @Test
@@ -513,5 +517,86 @@ class MemberServiceTest {
         assertTrue(result.getMember_preference_region_status());
         assertTrue(result.getMember_purpose_status());
         assertTrue(result.getMember_preference_workspace_status());
+    }
+
+    @Test
+    @DisplayName("회원 워크스페이스 스크랩 등록 테스트 - 스크랩을 성공하는 경우")
+    void scrapWorkspace() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+
+        // when
+        ApiStatusResponse apiStatusResponse = memberService.addStar(
+            new MemberAuthDto(member.getId()), 1L);
+
+        // then
+        assertEquals(apiStatusResponse.getStatus(), HttpStatus.OK.value());
+        assertEquals(apiStatusResponse.getMessage(), "스크랩을 성공하였습니다.");
+    }
+
+    @Test
+    @DisplayName("회원 워크스페이스 스크랩 등록 테스트 - 존재하지 않는 워크스페이스를 스크랩하는 경우 404 예외 발생")
+    void scrapWorkspace2() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+
+        // when & then
+        assertThrows(WorkspaceNotFoundException.class, () -> {
+            memberService.addStar(new MemberAuthDto(member.getId()), 100L);
+        });
+    }
+
+    @Test
+    @DisplayName("회원 워크스페이스 스크랩 삭제 테스트 - 스크랩 삭제를 성공하는 경우")
+    void scrapWorkspaceDelete() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+
+        // when
+        ApiStatusResponse apiStatusResponse = memberService.addStar(
+            new MemberAuthDto(member.getId()), 1L);
+        ApiStatusResponse apiStatusResponse2 = memberService.removeStar(
+            new MemberAuthDto(member.getId()), 1L);
+
+        // then
+        assertEquals(apiStatusResponse.getStatus(), HttpStatus.OK.value());
+        assertEquals(apiStatusResponse.getMessage(), "스크랩을 성공하였습니다.");
+        assertEquals(apiStatusResponse2.getStatus(), HttpStatus.OK.value());
+        assertEquals(apiStatusResponse2.getMessage(), "스크랩 삭제를 성공하였습니다.");
+    }
+
+    @Test
+    @DisplayName("회원 워크스페이스 스크랩 삭제 테스트 - 존재하지 않는 스크랩을 삭제하는 경우 404 예외 발생")
+    void scrapWorkspaceDelete2() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+
+        // when & then
+        assertThrows(WorkspaceNotFoundException.class, () -> {
+            memberService.removeStar(new MemberAuthDto(member.getId()), 100L);
+        });
+    }
+
+    @Test
+    @DisplayName("회원 워크스페이스 스크랩 리스트 조회 테스트 - 스크랩 조회를 성공하는 경우")
+    void getScrapWorkspaceList() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+
+        memberService.addStar(new MemberAuthDto(member.getId()), 1L);
+        memberService.addStar(new MemberAuthDto(member.getId()), 2L);
+        memberService.addStar(new MemberAuthDto(member.getId()), 3L);
+
+        // when
+        MemberScrapListResponse starList = memberService.getStarList(
+            new MemberAuthDto(member.getId()));
+
+        // then
+        assertEquals(starList.getList().size(), 3);
     }
 }
