@@ -123,8 +123,8 @@ public class AppleLoginFilter extends OncePerRequestFilter {
     }
 
     private String generateAppleSignKey() {
+        Date expirationDate = Date.from(LocalDateTime.now().plusDays(30).atZone(ZoneId.of("Asia/Seoul")).toInstant());
         try {
-            Date expirationDate = Date.from(LocalDateTime.now().plusDays(30).atZone(ZoneId.of("Asia/Seoul")).toInstant());
             return Jwts.builder()
                     .setHeaderParam("kid", clientId)
                     .setHeaderParam("alg", "ES256")
@@ -136,8 +136,7 @@ public class AppleLoginFilter extends OncePerRequestFilter {
                     .signWith(getPrivateKey(), SignatureAlgorithm.ES256)
                     .compact();
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new IllegalArgumentException("Apple Sign Key Error");
+            throw new IllegalArgumentException("Apple Sign Key Error - " + e.getMessage() + " - expiredAt : " + expirationDate);
         }
     }
 
