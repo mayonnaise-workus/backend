@@ -7,16 +7,20 @@ import com.tune.server.dto.request.MemberAgreementRequest;
 import com.tune.server.dto.request.MemberNameRequest;
 import com.tune.server.dto.request.MemberPreferenceRegionRequest;
 import com.tune.server.dto.request.MemberPurposeRequest;
+import com.tune.server.dto.response.ApiStatusResponse;
 import com.tune.server.dto.response.MemberOnboardingResponse;
+import com.tune.server.dto.response.MemberScrapListResponse;
 import com.tune.server.enums.MemberPreferenceEnum;
 import com.tune.server.enums.TagTypeEnum;
 import com.tune.server.exceptions.login.TokenExpiredException;
 import com.tune.server.exceptions.member.InvalidRequestException;
 import com.tune.server.exceptions.member.MemberNotFoundException;
 import com.tune.server.repository.*;
+import com.tune.server.service.workspace.WorkspaceService;
 import com.tune.server.util.JwtUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -33,6 +37,10 @@ public class MemberServiceImpl implements MemberService {
     private MemberProviderRepository memberProviderRepository;
     private MemberRepository memberRepository;
     private MemberPreferenceRepository memberPreferenceRepository;
+
+    private MemberScrapRepository memberScrapRepository;
+    private WorkspaceService workspaceService;
+
     @Override
     public boolean isExistMember(KakaoUserInfo id) {
         Optional<MemberProvider> memberProvider = memberProviderRepository.findByProviderIdAndAndProvider(id.getId().toString(), "KAKAO");
@@ -223,6 +231,48 @@ public class MemberServiceImpl implements MemberService {
         response.setMember_preference_region_status(memberPreferenceRegions.size() > 0);
 
         return response;
+    }
+
+    @Override
+    @Transactional
+    public ApiStatusResponse addStar(MemberAuthDto principal, Long workspaceId) {
+        Member member = memberRepository.findById(principal.getId()).orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
+        Workspace workspace = workspaceService.findWorkSpaceById(workspaceId);
+
+        MemberScrap memberScrap = memberScrapRepository.save(
+                MemberScrap.builder()
+                        .member(member)
+                        .workspace(workspace)
+                        .build()
+        );
+
+        return ApiStatusResponse.builder()
+                .status(HttpStatus.OK.value())
+                .message("스크랩을 성공하였습니다.")
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public ApiStatusResponse removeStar(MemberAuthDto principal, Long workspaceId) {
+        Member member = memberRepository.findById(principal.getId()).orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
+        Workspace workspace = workspaceService.findWorkSpaceById(workspaceId);
+
+        memberScrapRepository.deleteMemberScrapByMemberAndWorkspace(
+            member, workspace);
+
+        return ApiStatusResponse.builder()
+                .status(HttpStatus.OK.value())
+                .message("스크랩 삭제를 성공하였습니다.")
+                .build();
+    }
+
+    @Override
+    public MemberScrapListResponse getStarList(MemberAuthDto principal) {
+        List<MemberScrap> memberScraps = memberScrapRepository.findAllByMemberId(principal.getId());
+
+
+        return MemberScrapListResponse.of(memberScraps);
     }
 
 }

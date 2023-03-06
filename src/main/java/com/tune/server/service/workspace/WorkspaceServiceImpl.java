@@ -8,6 +8,7 @@ import com.tune.server.dto.response.WorkspaceDetailResponse;
 import com.tune.server.dto.response.WorkspaceListResponse;
 import com.tune.server.enums.TagTypeEnum;
 import com.tune.server.enums.WorkspaceTagEnum;
+import com.tune.server.exceptions.workspace.WorkspaceNotFoundException;
 import com.tune.server.repository.TagRepository;
 import com.tune.server.repository.WorkspaceImageRepository;
 import com.tune.server.repository.WorkspaceRepository;
@@ -68,7 +69,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
 
     @Override
     public WorkspaceDetailResponse getWorkSpaceDetail(Long id) {
-        Workspace workspace = workspaceRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("워크스페이스가 존재하지 않습니다."));
+        Workspace workspace = workspaceRepository.findById(id).orElseThrow(() -> new WorkspaceNotFoundException("워크스페이스가 존재하지 않습니다."));
 
         WorkspaceDetailResponse workspaceDetailResponse = WorkspaceDetailResponse.of(workspace);
 
@@ -80,5 +81,10 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         workspaceDetailResponse.setWorkspace_images(workspaceImages.stream().map(WorkspaceImage::getImageUrl).collect(Collectors.toList()));
 
         return workspaceDetailResponse;
+    }
+
+    @Override
+    public Workspace findWorkSpaceById(Long workspaceId) {
+        return workspaceRepository.findById(workspaceId).orElseThrow(() -> new WorkspaceNotFoundException("워크스페이스가 존재하지 않습니다."));
     }
 }
