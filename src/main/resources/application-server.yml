@@ -31,6 +31,10 @@ spring:
 server:
   port: 5000
 
+sentry:
+  dsn: ${SENTRY_DSN}
+  traces-sample-rate: 1.0
+
 external:
   jwt:
     secret: ${JWT_SECRET}
