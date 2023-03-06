@@ -156,12 +156,12 @@ public class AppleLoginFilter extends OncePerRequestFilter {
 
     private PrivateKey getPrivateKey() throws IOException {
         // PRIVATE_KEY 렌더링
-        appleSignKey = appleSignKey.replace(' ', '\n');
+        String fullAppleSignKey = appleSignKey.replace(' ', '\n');
         String SSH_SUFFIX = "\n-----END PRIVATE KEY-----";
         String SSH_PREFIX = "-----BEGIN PRIVATE KEY-----\n";
-        appleSignKey = SSH_PREFIX + appleSignKey + SSH_SUFFIX;
+        fullAppleSignKey = SSH_PREFIX + fullAppleSignKey + SSH_SUFFIX;
 
-        Reader pemReader = new StringReader(appleSignKey);
+        Reader pemReader = new StringReader(fullAppleSignKey);
         PEMParser pemParser = new PEMParser(pemReader);
         JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
         PrivateKeyInfo object = (PrivateKeyInfo) pemParser.readObject();
