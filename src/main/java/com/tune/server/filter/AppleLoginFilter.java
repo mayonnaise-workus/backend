@@ -105,7 +105,7 @@ public class AppleLoginFilter extends OncePerRequestFilter {
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("code", appleLoginRequest.getAuthorizationCode());
-        params.add("client_id", clientId);
+        params.add("client_id", bundleId);
         params.add("client_secret", generateAppleSignKey());
         params.add("grant_type", "authorization_code");
 
@@ -114,7 +114,6 @@ public class AppleLoginFilter extends OncePerRequestFilter {
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(params, headers);
         try {
-            System.out.println(generateAppleSignKey());
             ResponseEntity<AppleAuthTokenDto> response = restTemplate.postForEntity(APPLE_TOKEN_URI, httpEntity, AppleAuthTokenDto.class);
             return response.getBody();
         } catch (HttpClientErrorException e) {
@@ -125,19 +124,15 @@ public class AppleLoginFilter extends OncePerRequestFilter {
 
     private String generateAppleSignKey() {
         try {
-            Date now = new Date();
-            Map<String, Object> jwtHeader = new HashMap<>();
-            jwtHeader.put("kid", clientId);
-            jwtHeader.put("alg", "ES256");
-
             return Jwts.builder()
-                    .setHeaderParams(jwtHeader)
+                    .setHeaderParam("kid", clientId)
+                    .setHeaderParam("alg", "ES256")
                     .setIssuer(teamId)
-                    .setIssuedAt(now) // 발행 시간 - UNIX 시간
-                    .setExpiration(new Date(now.getTime() + 8640000)) // 만료 시간
                     .setAudience(APPLE_AUDIENCE_URI)
                     .setSubject(bundleId)
-                    .signWith(SignatureAlgorithm.ES256, getPrivateKey())
+                    .setExpiration(new Date(System.currentTimeMillis() + 864000))
+                    .setIssuedAt(new Date(System.currentTimeMillis()))
+                    .signWith(getPrivateKey(), SignatureAlgorithm.ES256)
                     .compact();
         } catch (Exception e) {
             e.printStackTrace();
