@@ -118,7 +118,11 @@ public class AppleLoginFilter extends OncePerRequestFilter {
             return response.getBody();
         } catch (HttpClientErrorException e) {
             e.printStackTrace();
+            System.out.println("===========================");
+            System.out.println(params);
             throw new IllegalArgumentException("Apple Auth Token Error - " + e.getMessage());
+
+
         }
     }
 
