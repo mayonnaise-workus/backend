@@ -130,6 +130,10 @@ public class AppleLoginFilter extends OncePerRequestFilter {
     private String generateAppleSignKey() {
 //        Date expirationDate = new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 30);
         Date expirationDate = Date.from(LocalDateTime.now().plusDays(30).atZone(ZoneId.systemDefault()).toInstant());
+        System.out.println("teamId = " + teamId);
+        System.out.println("bundleId = " + bundleId);
+        System.out.println("clientId = " + clientId);
+        System.out.println("appleSignKey = " + appleSignKey);
         System.out.println("expirationDate = " + expirationDate);
         System.out.println("System.currentTimeMillis() = " + System.currentTimeMillis());
         try {
