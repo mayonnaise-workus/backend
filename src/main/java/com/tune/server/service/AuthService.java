@@ -27,9 +27,6 @@ import java.util.Date;
 
 @Service
 public class AuthService {
-
-
-
     private final String APPLE_REVOKE_URL = "https://appleid.apple.com/auth/revoke";
     private final String APPLE_AUDIENCE_URI = "https://appleid.apple.com";
     @Value("${external.apple.bundle-id}")
@@ -41,7 +38,12 @@ public class AuthService {
     @Value("${external.apple.private-key}")
     private String appleSignKey;
 
-    private final String GOOGLE_REVOKE_URL = "https://accounts.google.com/o/oauth2/revoke";
+    private final String GOOGLE_REVOKE_URL = "https://oauth2.googleapis.com/revoke?token=";
+    @Value("${external.google.client-id}")
+    private String googleClientId;
+    @Value("${external.google.client-secret}")
+    private String googleClientSecret;
+
     private final String KAKAO_REVOKE_URL = "https://kapi.kakao.com/v1/user/logout";
 
 
@@ -71,7 +73,23 @@ public class AuthService {
     }
 
     public boolean revokeGoogleToken(String refreshToken) {
-        return false;
+        // POST to GOOGLE_REVOKE_URL
+        RestTemplate restTemplate = new RestTemplateBuilder().build();
+
+        String googleRevokeUrl = GOOGLE_REVOKE_URL + refreshToken;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(headers);
+
+        try {
+            restTemplate.postForEntity(googleRevokeUrl, httpEntity, String.class);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public boolean revokeKakaoToken(String refreshToken) {
