@@ -35,6 +35,8 @@ dependencies {
     implementation 'io.sentry:sentry-logback:6.15.0' // Sentry
     implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.70' // Bouncy Castle - Security
     implementation group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.70' // Bouncy Castle - Security
+    implementation 'com.google.auth:google-auth-library-oauth2-http:1.3.0'// Google OAuth2
+    implementation 'com.google.api-client:google-api-client:2.2.0' // Google OAuth2
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'com.h2database:h2'
     runtimeOnly 'com.mysql:mysql-connector-j'

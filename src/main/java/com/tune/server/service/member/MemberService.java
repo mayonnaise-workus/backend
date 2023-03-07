@@ -1,13 +1,11 @@
 package com.tune.server.service.member;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.tune.server.domain.Member;
 import com.tune.server.dto.MemberAuthDto;
 import com.tune.server.dto.apple.AppleAuthTokenDto;
 import com.tune.server.dto.kakao.KakaoUserInfo;
-import com.tune.server.dto.request.MemberAgreementRequest;
-import com.tune.server.dto.request.MemberNameRequest;
-import com.tune.server.dto.request.MemberPreferenceRegionRequest;
-import com.tune.server.dto.request.MemberPurposeRequest;
+import com.tune.server.dto.request.*;
 import com.tune.server.dto.response.ApiStatusResponse;
 import com.tune.server.dto.response.MemberOnboardingResponse;
 import com.tune.server.dto.response.MemberPreferencesResponse;
@@ -20,11 +18,16 @@ import java.util.Map;
 public interface MemberService {
     boolean isExistMember(KakaoUserInfo kakaoUserInfo);
     boolean isExistMember(AppleAuthTokenDto appleAuthTokenDto);
+
+    boolean isExistMember(GoogleLoginRequest googleLoginRequest);
     boolean signUp(KakaoUserInfo kakaoUserInfo);
     boolean signUp(AppleAuthTokenDto appleAuthTokenDto);
 
+    boolean signUp(GoogleLoginRequest request, GoogleTokenResponse tokenResponse);
     Member getMember(KakaoUserInfo kakaoUserInfo);
     Member getMember(AppleAuthTokenDto appleAuthTokenDto);
+
+    Member getMember(GoogleLoginRequest googleLoginRequest);
     Map<String, String> refresh(String refreshToken);
 
     Member updateAgreement(MemberAuthDto member, MemberAgreementRequest request);
@@ -48,4 +51,5 @@ public interface MemberService {
     MemberScrapListResponse getStarList(MemberAuthDto principal);
 
     MemberPreferencesResponse getPreferences(MemberAuthDto principal);
+
 }

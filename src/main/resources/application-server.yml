@@ -43,3 +43,7 @@ external:
     team-id: ${APPLE_TEAM_ID}
     bundle-id: ${APPLE_BUNDLE_ID}
     private-key: ${APPLE_PRIVATE_KEY}
+  google:
+    client-id: ${GOOGLE_CLIENT_ID}
+    client-secret: ${GOOGLE_CLIENT_SECRET}
+

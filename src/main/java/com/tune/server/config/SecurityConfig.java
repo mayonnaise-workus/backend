@@ -1,12 +1,10 @@
 package com.tune.server.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tune.server.filter.AppleLoginFilter;
-import com.tune.server.filter.ExceptionHandlerFilter;
-import com.tune.server.filter.JwtAuthenticationFilter;
-import com.tune.server.filter.KakaoLoginFilter;
+import com.tune.server.filter.*;
 import com.tune.server.service.member.MemberService;
 import lombok.AllArgsConstructor;
+import lombok.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -24,6 +22,7 @@ public class SecurityConfig {
 
     private final AppleLoginFilter appleLoginFilter;
 
+    private final GoogleLoginFilter googleLoginFilter;
     private final MemberService memberService;
 
     @Bean
@@ -34,7 +33,8 @@ public class SecurityConfig {
                 "/swagger-ui/**",
                 "/v3/api-docs/**",
                 "/swagger-resources/**",
-                "/h2-console/**"
+                "/h2-console/**",
+                "/favicon.ico"
         );
     }
 
@@ -51,7 +51,8 @@ public class SecurityConfig {
                 .and()
                 .addFilterBefore(new KakaoLoginFilter("/login/kakao", objectMapper, memberService), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(appleLoginFilter, KakaoLoginFilter.class)
-                .addFilterBefore(new ExceptionHandlerFilter(), KakaoLoginFilter.class)
+                .addFilterBefore(googleLoginFilter, AppleLoginFilter.class)
+                .addFilterBefore(new ExceptionHandlerFilter(), GoogleLoginFilter.class)
                 .addFilterAfter(new JwtAuthenticationFilter(objectMapper, memberService), KakaoLoginFilter.class)
                 .build();
     }

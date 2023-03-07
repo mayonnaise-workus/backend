@@ -1,13 +1,11 @@
 package com.tune.server.service.member;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.tune.server.domain.*;
 import com.tune.server.dto.MemberAuthDto;
 import com.tune.server.dto.apple.AppleAuthTokenDto;
 import com.tune.server.dto.kakao.KakaoUserInfo;
-import com.tune.server.dto.request.MemberAgreementRequest;
-import com.tune.server.dto.request.MemberNameRequest;
-import com.tune.server.dto.request.MemberPreferenceRegionRequest;
-import com.tune.server.dto.request.MemberPurposeRequest;
+import com.tune.server.dto.request.*;
 import com.tune.server.dto.response.ApiStatusResponse;
 import com.tune.server.dto.response.MemberOnboardingResponse;
 import com.tune.server.dto.response.MemberPreferencesResponse;
@@ -56,6 +54,11 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    public boolean isExistMember(GoogleLoginRequest googleLoginRequest) {
+        return memberProviderRepository.findByProviderIdAndAndProvider(googleLoginRequest.getId(), "GOOGLE").isPresent();
+    }
+
+    @Override
     @Transactional
     public boolean signUp(KakaoUserInfo kakaoUserInfo) {
         try {
@@ -82,6 +85,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    @Transactional
     public boolean signUp(AppleAuthTokenDto appleAuthTokenDto) {
         try {
             Member member = Member
@@ -107,6 +111,32 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    @Transactional
+    public boolean signUp(GoogleLoginRequest request, GoogleTokenResponse tokenResponse) {
+        try {
+            Member member = Member
+                    .builder()
+                    .refreshToken(JwtUtil.generateRefreshToken())
+                    .refreshTokenExpiresAt(LocalDateTime.now().plusMonths(JwtUtil.REFRESH_TOKEN_EXPIRES_MONTH))
+                    .build();
+
+            MemberProvider memberProvider = MemberProvider.builder()
+                    .providerId(request.getId())
+                    .refreshToken(tokenResponse.getRefreshToken())
+                    .member(member)
+                    .provider("GOOGLE")
+                    .build();
+
+            memberRepository.save(member);
+            memberProviderRepository.save(memberProvider);
+            return true;
+        } catch (Exception e) {
+            log.error("회원가입 실패", e);
+            return false;
+        }
+    }
+
+    @Override
     public Member getMember(KakaoUserInfo kakaoUserInfo) {
         Optional<MemberProvider> memberProvider = memberProviderRepository.findByProviderIdAndAndProvider(kakaoUserInfo.getId().toString(), "KAKAO");
         return memberProvider.map(MemberProvider::getMember).orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
@@ -115,6 +145,13 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public Member getMember(AppleAuthTokenDto appleAuthTokenDto) {
         return memberProviderRepository.findByProviderIdAndAndProvider(appleAuthTokenDto.getUser_id(), "APPLE")
+                .map(MemberProvider::getMember)
+                .orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
+    }
+
+    @Override
+    public Member getMember(GoogleLoginRequest googleLoginRequest) {
+        return memberProviderRepository.findByProviderIdAndAndProvider(googleLoginRequest.getId(), "GOOGLE")
                 .map(MemberProvider::getMember)
                 .orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
     }
