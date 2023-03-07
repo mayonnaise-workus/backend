@@ -10,6 +10,7 @@ import com.tune.server.service.member.MemberService;
 import com.tune.server.util.JwtUtil;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
@@ -163,7 +164,8 @@ public class AppleLoginFilter extends OncePerRequestFilter {
         String SSH_SUFFIX = "\n-----END PRIVATE KEY-----";
         String SSH_PREFIX = "-----BEGIN PRIVATE KEY-----\n";
         fullAppleSignKey = SSH_PREFIX + fullAppleSignKey + SSH_SUFFIX;
-
+        System.out.println("====================================");
+        System.out.println(fullAppleSignKey);
         Reader pemReader = new StringReader(fullAppleSignKey);
         PEMParser pemParser = new PEMParser(pemReader);
         JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
