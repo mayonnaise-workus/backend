@@ -21,7 +21,7 @@ public class MemberProvider {
     @Column(name = "id")
     private Long id;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "member_id")
     private Member member;
 

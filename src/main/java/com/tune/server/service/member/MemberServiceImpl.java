@@ -16,6 +16,7 @@ import com.tune.server.exceptions.login.TokenExpiredException;
 import com.tune.server.exceptions.member.InvalidRequestException;
 import com.tune.server.exceptions.member.MemberNotFoundException;
 import com.tune.server.repository.*;
+import com.tune.server.service.AuthService;
 import com.tune.server.service.workspace.WorkspaceService;
 import com.tune.server.util.JwtUtil;
 import lombok.AllArgsConstructor;
@@ -23,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -42,6 +44,9 @@ public class MemberServiceImpl implements MemberService {
     private MemberScrapRepository memberScrapRepository;
     private WorkspaceService workspaceService;
 
+    private EntityManager entityManager;
+    private AuthService authService;
+
     @Override
     public boolean isExistMember(KakaoUserInfo id) {
         Optional<MemberProvider> memberProvider = memberProviderRepository.findByProviderIdAndAndProvider(id.getId().toString(), "KAKAO");
@@ -50,6 +55,7 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public boolean isExistMember(AppleAuthTokenDto appleAuthTokenDto) {
+        System.out.println(appleAuthTokenDto.getUser_id());
         return memberProviderRepository.findByProviderIdAndAndProvider(appleAuthTokenDto.getUser_id(), "APPLE").isPresent();
     }
 
@@ -364,6 +370,40 @@ public class MemberServiceImpl implements MemberService {
                 .preference_workspace_types(memberWorkspacePurposes.stream().map(MemberPreference::getTag).map(Tag::getTagId).map(Long::intValue).collect(Collectors.toList()))
                 .preference_workspace_regions(memberPreferenceRegions.stream().map(MemberPreference::getTag).map(Tag::getTagId).map(Long::intValue).collect(Collectors.toList()))
                 .preference_workspace_purposes(memberPurposes.stream().map(MemberPreference::getTag).map(Tag::getTagId).map(Long::intValue).collect(Collectors.toList()))
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public ApiStatusResponse deleteMember(MemberAuthDto principal) {
+        MemberProvider memberProvider = memberProviderRepository.findByMemberId(principal.getId()).orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
+        Member member = memberProvider.getMember();
+
+        // 서비스 별 탈퇴 처리 진행
+        boolean deleted = true;
+        switch (memberProvider.getProvider()) {
+            case "KAKAO":
+                deleted = authService.revokeKakaoToken(memberProvider.getRefreshToken());
+                break;
+            case "GOOGLE":
+                deleted = authService.revokeGoogleToken(memberProvider.getRefreshToken());
+                break;
+            case "APPLE":
+                deleted = authService.revokeAppleToken(memberProvider.getRefreshToken());
+                break;
+
+        }
+        if (!deleted) {
+            return ApiStatusResponse.builder()
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                    .message("회원 탈퇴에 실패하였습니다.")
+                    .build();
+        }
+
+        entityManager.remove(member);
+        return ApiStatusResponse.builder()
+                .status(HttpStatus.OK.value())
+                .message("회원 탈퇴에 성공하였습니다.")
                 .build();
     }
 

@@ -44,6 +44,12 @@ public class MemberController {
         return ResponseEntity.ok(MemberResponse.of(memberService.getInfo((MemberAuthDto) authentication.getPrincipal())));
     }
 
+    @DeleteMapping("/member")
+    @ApiOperation(value = "회원 탈퇴", notes = "회원 탈퇴를 합니다.")
+    public ResponseEntity<ApiStatusResponse> deleteMember(@ApiIgnore Authentication authentication) {
+        return ResponseEntity.ok(memberService.deleteMember((MemberAuthDto) authentication.getPrincipal()));
+    }
+
     @GetMapping("/member/onboarding")
     @ApiResponses(
             value = {
@@ -172,5 +178,6 @@ public class MemberController {
     public ResponseEntity<MemberScrapListResponse> getStarList(@ApiIgnore Authentication authentication) {
         return ResponseEntity.ok(memberService.getStarList((MemberAuthDto) authentication.getPrincipal()));
     }
+
 
 }

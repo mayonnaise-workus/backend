@@ -52,4 +52,5 @@ public interface MemberService {
 
     MemberPreferencesResponse getPreferences(MemberAuthDto principal);
 
+    ApiStatusResponse deleteMember(MemberAuthDto principal);
 }

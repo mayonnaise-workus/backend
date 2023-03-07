@@ -6,6 +6,7 @@ import com.tune.server.dto.apple.AppleAuthTokenDto;
 import com.tune.server.dto.request.AppleLoginRequest;
 import com.tune.server.dto.response.FullTokenResponse;
 import com.tune.server.exceptions.login.TokenNotFoundException;
+import com.tune.server.service.AuthService;
 import com.tune.server.service.member.MemberService;
 import com.tune.server.util.JwtUtil;
 import io.jsonwebtoken.Jwts;
@@ -45,24 +46,19 @@ import java.util.*;
 public class AppleLoginFilter extends OncePerRequestFilter {
     private final String SIGNUP_URI = "/login/apple";
     private final String APPLE_TOKEN_URI = "https://appleid.apple.com/auth/token";
-    private final String APPLE_AUDIENCE_URI = "https://appleid.apple.com";
     @Autowired
     private ObjectMapper objectMapper;
 
     @Autowired
     private MemberService memberService;
 
+    @Autowired
+    private AuthService authService;
+
     @Value("${external.apple.bundle-id}")
     private String bundleId;
 
-    @Value("${external.apple.client-id}")
-    private String clientId;
 
-    @Value("${external.apple.team-id}")
-    private String teamId;
-
-    @Value("${external.apple.private-key}")
-    private String appleSignKey;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -72,7 +68,7 @@ public class AppleLoginFilter extends OncePerRequestFilter {
 
             // 2. Apple JWT 생성 및 검증
             AppleAuthTokenDto appleAuthTokenDto = getAppleAuthTokenDto(appleLoginRequest);
-            appleAuthTokenDto.setUser_id(appleAuthTokenDto.getUser_id());
+            appleAuthTokenDto.setUser_id(appleLoginRequest.getUser());
 
             // 3. 회원정보로 로그인/회원가입
             if (!memberService.isExistMember(appleAuthTokenDto)) {
@@ -107,7 +103,7 @@ public class AppleLoginFilter extends OncePerRequestFilter {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("code", appleLoginRequest.getAuthorizationCode());
         params.add("client_id", bundleId);
-        params.add("client_secret", generateAppleSignKey());
+        params.add("client_secret", authService.generateAppleSignKey());
         params.add("grant_type", "authorization_code");
 
         HttpHeaders headers = new HttpHeaders();
@@ -119,36 +115,7 @@ public class AppleLoginFilter extends OncePerRequestFilter {
             return response.getBody();
         } catch (HttpClientErrorException e) {
             e.printStackTrace();
-            System.out.println("===========================");
-            System.out.println(params);
             throw new IllegalArgumentException("Apple Auth Token Error - " + e.getMessage());
-
-
-        }
-    }
-
-    private String generateAppleSignKey() {
-//        Date expirationDate = new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 30);
-        Date expirationDate = Date.from(LocalDateTime.now().plusDays(30).atZone(ZoneId.systemDefault()).toInstant());
-        System.out.println("teamId = " + teamId);
-        System.out.println("bundleId = " + bundleId);
-        System.out.println("clientId = " + clientId);
-        System.out.println("appleSignKey = " + appleSignKey);
-        System.out.println("expirationDate = " + expirationDate);
-        System.out.println("System.currentTimeMillis() = " + System.currentTimeMillis());
-        try {
-            return Jwts.builder()
-                    .setHeaderParam("kid", clientId)
-                    .setHeaderParam("alg", "ES256")
-                    .setIssuer(teamId)
-                    .setAudience(APPLE_AUDIENCE_URI)
-                    .setSubject(bundleId)
-                    .setExpiration(expirationDate)
-                    .setIssuedAt(new Date(System.currentTimeMillis()))
-                    .signWith(getPrivateKey(), SignatureAlgorithm.ES256)
-                    .compact();
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Apple Sign Key Error - " + e.getMessage() + " - expiredAt : " + expirationDate);
         }
     }
 
@@ -165,19 +132,5 @@ public class AppleLoginFilter extends OncePerRequestFilter {
         }
     }
 
-    private PrivateKey getPrivateKey() throws IOException {
-        // PRIVATE_KEY 렌더링
-        String fullAppleSignKey = appleSignKey.replace(' ', '\n');
-        String SSH_SUFFIX = "\n-----END PRIVATE KEY-----";
-        String SSH_PREFIX = "-----BEGIN PRIVATE KEY-----\n";
-        fullAppleSignKey = SSH_PREFIX + fullAppleSignKey + SSH_SUFFIX;
-        System.out.println("====================================");
-        System.out.println(fullAppleSignKey);
-        Reader pemReader = new StringReader(fullAppleSignKey);
-        PEMParser pemParser = new PEMParser(pemReader);
-        JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
-        PrivateKeyInfo object = (PrivateKeyInfo) pemParser.readObject();
-        return converter.getPrivateKey(object);
-    }
 
 }
