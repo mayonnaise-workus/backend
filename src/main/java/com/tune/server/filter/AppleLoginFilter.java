@@ -128,7 +128,7 @@ public class AppleLoginFilter extends OncePerRequestFilter {
     }
 
     private String generateAppleSignKey() {
-        Date expirationDate = Date.from(LocalDateTime.now().plusDays(30).atZone(ZoneId.of("Asia/Seoul")).toInstant());
+        Date expirationDate = new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 30);
         try {
             return Jwts.builder()
                     .setHeaderParam("kid", clientId)
@@ -137,7 +137,7 @@ public class AppleLoginFilter extends OncePerRequestFilter {
                     .setAudience(APPLE_AUDIENCE_URI)
                     .setSubject(bundleId)
                     .setExpiration(expirationDate)
-                    .setIssuedAt(Date.from(LocalDateTime.now().atZone(ZoneId.of("Asia/Seoul")).toInstant()))
+                    .setIssuedAt(new Date(System.currentTimeMillis()))
                     .signWith(getPrivateKey(), SignatureAlgorithm.ES256)
                     .compact();
         } catch (Exception e) {
