@@ -10,6 +10,7 @@ import com.tune.server.dto.request.MemberPreferenceRegionRequest;
 import com.tune.server.dto.request.MemberPurposeRequest;
 import com.tune.server.dto.response.ApiStatusResponse;
 import com.tune.server.dto.response.MemberOnboardingResponse;
+import com.tune.server.dto.response.MemberPreferencesResponse;
 import com.tune.server.dto.response.MemberScrapListResponse;
 import org.springframework.stereotype.Service;
 
@@ -46,4 +47,5 @@ public interface MemberService {
 
     MemberScrapListResponse getStarList(MemberAuthDto principal);
 
+    MemberPreferencesResponse getPreferences(MemberAuthDto principal);
 }

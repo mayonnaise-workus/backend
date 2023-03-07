@@ -5,10 +5,7 @@ import com.tune.server.dto.request.MemberAgreementRequest;
 import com.tune.server.dto.request.MemberNameRequest;
 import com.tune.server.dto.request.MemberPreferenceRegionRequest;
 import com.tune.server.dto.request.MemberPurposeRequest;
-import com.tune.server.dto.response.ApiStatusResponse;
-import com.tune.server.dto.response.MemberOnboardingResponse;
-import com.tune.server.dto.response.MemberResponse;
-import com.tune.server.dto.response.MemberScrapListResponse;
+import com.tune.server.dto.response.*;
 import com.tune.server.service.member.MemberService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -93,6 +90,21 @@ public class MemberController {
     @ApiOperation(value = "회원 이름 변경", notes = "회원 이름을 변경합니다.")
     public ResponseEntity<MemberResponse> updateName(@ApiIgnore Authentication authentication, @RequestBody MemberNameRequest request) {
         return ResponseEntity.ok(MemberResponse.of(memberService.updateName((MemberAuthDto) authentication.getPrincipal(), request)));
+    }
+
+    @GetMapping("/member/preference")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "성공"),
+                    @ApiResponse(responseCode = "400", description = "잘못된 요청 - 필수 매개변수 누락"),
+                    @ApiResponse(responseCode = "401", description = "인증 실패 - 토큰 만료, 토큰 무효"),
+                    @ApiResponse(responseCode = "403", description = "권한 없음"),
+                    @ApiResponse(responseCode = "404", description = "존재하지 않는 리소스 혹은 잘못된 요청"),
+                    @ApiResponse(responseCode = "500", description = "서버 오류")
+            }
+    )
+    public ResponseEntity<MemberPreferencesResponse> getPreferenceRegion(@ApiIgnore Authentication authentication) {
+        return ResponseEntity.ok(memberService.getPreferences((MemberAuthDto) authentication.getPrincipal()));
     }
 
     @PostMapping("/member/preference/region")

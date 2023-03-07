@@ -10,6 +10,7 @@ import com.tune.server.dto.request.MemberPreferenceRegionRequest;
 import com.tune.server.dto.request.MemberPurposeRequest;
 import com.tune.server.dto.response.ApiStatusResponse;
 import com.tune.server.dto.response.MemberOnboardingResponse;
+import com.tune.server.dto.response.MemberPreferencesResponse;
 import com.tune.server.dto.response.MemberScrapListResponse;
 import com.tune.server.enums.MemberPreferenceEnum;
 import com.tune.server.enums.TagTypeEnum;
@@ -28,6 +29,7 @@ import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -311,6 +313,21 @@ public class MemberServiceImpl implements MemberService {
 
 
         return MemberScrapListResponse.of(memberScraps);
+    }
+
+    @Override
+    public MemberPreferencesResponse getPreferences(MemberAuthDto principal) {
+        Member member = memberRepository.findById(principal.getId()).orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
+
+        List<MemberPreference> memberPurposes = memberPreferenceRepository.findAllByMemberAndType(member, MemberPreferenceEnum.PURPOSE);
+        List<MemberPreference> memberWorkspacePurposes = memberPreferenceRepository.findAllByMemberAndType(member, MemberPreferenceEnum.WORKSPACE_CATEGORY);
+        List<MemberPreference> memberPreferenceRegions = memberPreferenceRepository.findAllByMemberAndType(member, MemberPreferenceEnum.REGION);
+
+        return MemberPreferencesResponse.builder()
+                .preference_workspace_types(memberWorkspacePurposes.stream().map(MemberPreference::getTag).map(Tag::getTagId).map(Long::intValue).collect(Collectors.toList()))
+                .preference_workspace_regions(memberPreferenceRegions.stream().map(MemberPreference::getTag).map(Tag::getTagId).map(Long::intValue).collect(Collectors.toList()))
+                .preference_workspace_purposes(memberPurposes.stream().map(MemberPreference::getTag).map(Tag::getTagId).map(Long::intValue).collect(Collectors.toList()))
+                .build();
     }
 
 }
