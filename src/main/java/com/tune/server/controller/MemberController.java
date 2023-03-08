@@ -1,10 +1,7 @@
 package com.tune.server.controller;
 
 import com.tune.server.dto.MemberAuthDto;
-import com.tune.server.dto.request.MemberAgreementRequest;
-import com.tune.server.dto.request.MemberNameRequest;
-import com.tune.server.dto.request.MemberPreferenceRegionRequest;
-import com.tune.server.dto.request.MemberPurposeRequest;
+import com.tune.server.dto.request.*;
 import com.tune.server.dto.response.*;
 import com.tune.server.service.member.MemberService;
 import io.swagger.annotations.Api;
@@ -46,7 +43,7 @@ public class MemberController {
 
     @DeleteMapping("/member")
     @ApiOperation(value = "회원 탈퇴", notes = "회원 탈퇴를 합니다.")
-    public ResponseEntity<ApiStatusResponse> deleteMember(@ApiIgnore Authentication authentication) {
+    public ResponseEntity<ApiStatusResponse> deleteMember(@ApiIgnore Authentication authentication, @RequestBody(required = false) MemberExitRequest request) {
         return ResponseEntity.ok(memberService.deleteMember((MemberAuthDto) authentication.getPrincipal()));
     }
 

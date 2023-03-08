@@ -13,4 +13,6 @@ public interface MemberProviderRepository extends JpaRepository<MemberProvider, 
     Optional<MemberProvider> findByMember(Member member);
 
     Optional<MemberProvider> findByMemberId(Long id);
+
+    void deleteAllByMember(Member member);
 }

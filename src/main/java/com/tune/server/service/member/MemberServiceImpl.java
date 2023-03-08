@@ -398,7 +398,10 @@ public class MemberServiceImpl implements MemberService {
                     .build();
         }
 
-        entityManager.remove(member);
+        memberScrapRepository.deleteAllByMember(member);
+        memberPreferenceRepository.deleteAllByMember(member);
+        memberProviderRepository.deleteAllByMember(member);
+        memberRepository.delete(member);
         return ApiStatusResponse.builder()
                 .status(HttpStatus.OK.value())
                 .message("회원 탈퇴에 성공하였습니다.")
