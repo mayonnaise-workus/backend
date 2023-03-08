@@ -44,9 +44,11 @@ public class AuthService {
 
     private final String GOOGLE_REVOKE_URL = "https://oauth2.googleapis.com/revoke?token=";
 
-    private final String KAKAO_REVOKE_URL = "https://kapi.kakao.com/v1/user/logout";
+    private final String KAKAO_REVOKE_URL = "https://kapi.kakao.com/v2/user/revoke/scopes";
+    private final String KAKAO_SCOPRES_URL = "https://kapi.kakao.com/v2/user/scopes";
 
-
+    @Value("${external.kakao.admin-key}")
+    private String kakaoAdminKey;
 
     public boolean revokeAppleToken(String refreshToken) {
         // POST to APPLE_REVOKE_URL
@@ -92,8 +94,29 @@ public class AuthService {
         }
     }
 
-    public boolean revokeKakaoToken(String refreshToken) {
-        return false;
+    public boolean revokeKakaoToken(Long userId) {
+        // 동의 내역 철회 하기
+        RestTemplate restTemplate = new RestTemplateBuilder().build();
+
+        LinkedMultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
+        params.add("target_id_type", "user_id");
+        params.add("target_id", userId);
+        params.add("scopes", "[\"account_ci\"]");
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.add("Authorization", "KakaoAK " + kakaoAdminKey);
+
+        HttpEntity<MultiValueMap<String, Object>> httpEntity = new HttpEntity<>(params, headers);
+
+        try {
+            restTemplate.postForEntity(KAKAO_REVOKE_URL, httpEntity, String.class);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public PrivateKey getPrivateKey() throws IOException {

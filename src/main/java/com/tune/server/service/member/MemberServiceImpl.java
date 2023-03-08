@@ -381,7 +381,7 @@ public class MemberServiceImpl implements MemberService {
         boolean deleted = true;
         switch (memberProvider.getProvider()) {
             case "KAKAO":
-                deleted = authService.revokeKakaoToken(memberProvider.getRefreshToken());
+                deleted = authService.revokeKakaoToken(Long.parseLong(memberProvider.getProviderId()));
                 break;
             case "GOOGLE":
                 deleted = authService.revokeGoogleToken(memberProvider.getRefreshToken());
