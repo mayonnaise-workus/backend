@@ -10,4 +10,6 @@ import java.util.List;
 public interface MemberPreferenceRepository extends JpaRepository<MemberPreference, Long> {
 
     List<MemberPreference> findAllByMemberAndType(Member member, MemberPreferenceEnum type);
+
+    void deleteAllByMember(Member member);
 }

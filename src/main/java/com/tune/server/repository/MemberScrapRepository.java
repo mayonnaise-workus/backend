@@ -11,4 +11,6 @@ public interface MemberScrapRepository extends JpaRepository<MemberScrap, Long> 
     void deleteMemberScrapByMemberAndWorkspace(Member member, Workspace workspace);
 
     List<MemberScrap> findAllByMemberId(Long id);
+
+    void deleteAllByMember(Member member);
 }

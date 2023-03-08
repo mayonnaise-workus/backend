@@ -21,7 +21,7 @@ public class MemberPreference {
     @Column(name = "id")
     private Long id;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "member_id", referencedColumnName = "id")
     private Member member;
 

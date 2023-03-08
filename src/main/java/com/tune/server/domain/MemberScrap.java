@@ -20,7 +20,7 @@ public class MemberScrap {
     @Column(name = "id")
     private Long id;
 
-    @ManyToOne()
+    @ManyToOne
     @JoinColumn(name = "member_id", referencedColumnName = "id")
     private Member member;
 
