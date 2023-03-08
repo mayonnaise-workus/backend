@@ -40,10 +40,8 @@ public class MemberServiceImpl implements MemberService {
     private MemberProviderRepository memberProviderRepository;
     private MemberRepository memberRepository;
     private MemberPreferenceRepository memberPreferenceRepository;
-
     private MemberScrapRepository memberScrapRepository;
     private WorkspaceService workspaceService;
-
     private EntityManager entityManager;
     private AuthService authService;
 

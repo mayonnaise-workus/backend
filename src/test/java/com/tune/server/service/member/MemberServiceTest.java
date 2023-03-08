@@ -16,6 +16,7 @@ import com.tune.server.exceptions.member.InvalidRequestException;
 import com.tune.server.exceptions.member.MemberNotFoundException;
 import com.tune.server.exceptions.workspace.WorkspaceNotFoundException;
 import com.tune.server.repository.*;
+import com.tune.server.service.AuthService;
 import com.tune.server.service.workspace.WorkspaceServiceImpl;
 import com.tune.server.util.JwtUtil;
 import org.junit.jupiter.api.BeforeAll;
@@ -36,7 +37,7 @@ import org.springframework.http.HttpStatus;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
-@Import({MemberServiceImpl.class, WorkspaceServiceImpl.class})
+@Import({MemberServiceImpl.class, WorkspaceServiceImpl.class, AuthService.class})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class MemberServiceTest {
 
@@ -47,6 +48,7 @@ class MemberServiceTest {
 
     @Autowired
     private MemberPreferenceRepository memberPreferenceRepository;
+
     @Autowired
     private MemberService memberService;
 

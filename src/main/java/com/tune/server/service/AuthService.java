@@ -29,20 +29,20 @@ import java.util.Date;
 public class AuthService {
     private final String APPLE_REVOKE_URL = "https://appleid.apple.com/auth/revoke";
     private final String APPLE_AUDIENCE_URI = "https://appleid.apple.com";
+
     @Value("${external.apple.bundle-id}")
     private String bundleId;
+
     @Value("${external.apple.client-id}")
     private String clientId;
+
     @Value("${external.apple.team-id}")
     private String teamId;
+
     @Value("${external.apple.private-key}")
     private String appleSignKey;
 
     private final String GOOGLE_REVOKE_URL = "https://oauth2.googleapis.com/revoke?token=";
-    @Value("${external.google.client-id}")
-    private String googleClientId;
-    @Value("${external.google.client-secret}")
-    private String googleClientSecret;
 
     private final String KAKAO_REVOKE_URL = "https://kapi.kakao.com/v1/user/logout";
 
