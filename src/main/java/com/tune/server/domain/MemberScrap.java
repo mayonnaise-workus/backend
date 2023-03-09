@@ -12,7 +12,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "member_scrap")
+@Table(name = "member_scrap", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"member_id", "workspace_id"})
+})
 public class MemberScrap {
 
     @Id

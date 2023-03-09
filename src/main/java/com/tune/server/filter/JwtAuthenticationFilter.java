@@ -37,7 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer "))
-            throw new TokenNotFoundException("JWT Token does not begin with Bearer String with URL : " + request.getRequestURI());
+            throw new TokenNotFoundException("JWT Token does not begin with Bearer String with URL : " + request.getRequestURI() + " token : " + authorizationHeader);
 
 
         String token = authorizationHeader.split(" ")[1];

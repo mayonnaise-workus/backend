@@ -14,14 +14,16 @@ import javax.persistence.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "member_preference")
+@Table(name = "member_preference", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"member_id", "type", "tag_id"})
+})
 public class MemberPreference {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "member_id", referencedColumnName = "id")
     private Member member;
 
