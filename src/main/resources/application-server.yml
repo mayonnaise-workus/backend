@@ -6,24 +6,20 @@ spring:
     pathmatch:
       matching-strategy: ant-path-matcher
   datasource:
-    url: jdbc:h2:mem:testdb;MODE=MySQL;
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
-  h2:
-    console:
-      enabled: true
+    url: jdbc:mysql://${DB_URL}:3306/tune
+    username: ${DB_ID}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     database: mysql
-    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+    database-platform: org.hibernate.dialect.MySQL8Dialect
     open-in-view: false
     generate-ddl: true
-    defer-datasource-initialization: true
     properties:
       hibernate:
-        show_sql: true
+        show_sql: false
         format_sql: true
   output:
     ansi:
@@ -48,3 +44,4 @@ external:
     client-secret: ${GOOGLE_CLIENT_SECRET}
   kakao:
     admin-key: ${KAKAO_ADMIN_KEY}
+
