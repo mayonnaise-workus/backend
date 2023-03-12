@@ -25,7 +25,7 @@ public class JwtUtil {
     public static final int REFRESH_TOKEN_EXPIRES_MONTH = 6;
 
     // access token expires in 12 hours
-    public static final int ACCESS_TOKEN_EXPIRE_MINUTE = 12 * 60;
+    public static final int ACCESS_TOKEN_EXPIRE_MINUTE = 365 * 24 * 60;
 
     @Value("${external.jwt.secret}")
     public void setKey(String key) {
