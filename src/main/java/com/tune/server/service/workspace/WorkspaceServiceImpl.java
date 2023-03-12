@@ -16,10 +16,7 @@ import com.tune.server.repository.WorkspaceTagRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,9 +42,8 @@ public class WorkspaceServiceImpl implements WorkspaceService {
             }
         }
 
-
         for (Tag regionTag : regionTags) {
-            List<WorkspaceTag> workspaceTags = workspaceTagRepository.findAllByTypeAndTag_Id(WorkspaceTagEnum.REGION, regionTag.getId());
+            List<WorkspaceTag> workspaceTags = workspaceTagRepository.findAllByTag_Id(regionTag.getId());
             if (workspaceTags.size() == 0)
                 continue;
 

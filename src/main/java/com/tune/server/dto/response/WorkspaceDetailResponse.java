@@ -37,6 +37,9 @@ public class WorkspaceDetailResponse {
     @ApiModelProperty(value = "워크스페이스 업무 목적 (노트북|대면 회의|비대면 회의)")
     Long workspace_obj;
 
+    @ApiModelProperty(value = "워크스페이스 계약 여부")
+    private boolean sponsor;
+
     @ApiModelProperty(value = "워크스페이스 대표 프로필 이미지")
     private String profile_img;
 
@@ -50,6 +53,12 @@ public class WorkspaceDetailResponse {
     @ApiModelProperty(value = "워크스페이스 정보 페이지")
     private String workspace_info;
 
+    @ApiModelProperty(value = "카카오맵 딥링크")
+    private String kakao_url;
+
+    @ApiModelProperty(value = "네이버맵 딥링크")
+    private String naver_url;
+
     public static WorkspaceDetailResponse of(Workspace workspace) {
         return WorkspaceDetailResponse.builder()
             .id(workspace.getId())
@@ -61,6 +70,9 @@ public class WorkspaceDetailResponse {
             .profile_img(workspace.getProfileImg())
             .workspace_homepage(workspace.getHomepage())
             .workspace_info(workspace.getInfoUrl())
+            .kakao_url(workspace.getKakaoUrl())
+            .naver_url(workspace.getNaverUrl())
+            .sponsor(workspace.isSponsor())
             .build();
     }
 }
