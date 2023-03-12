@@ -107,6 +107,7 @@ public class MemberController {
             }
     )
     public ResponseEntity<MemberPreferencesResponse> getPreferenceRegion(@ApiIgnore Authentication authentication) {
+        System.out.println("getPreferenceRegion - called");
         return ResponseEntity.ok(memberService.getPreferences((MemberAuthDto) authentication.getPrincipal()));
     }
 

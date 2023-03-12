@@ -220,7 +220,6 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    @Transactional
     public Member updatePreferenceLocation(MemberAuthDto principal, MemberPreferenceRegionRequest request) {
         Member member = memberRepository.findById(principal.getId()).orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
 
@@ -228,24 +227,23 @@ public class MemberServiceImpl implements MemberService {
             throw new InvalidRequestException("필수 파라미터가 누락되었습니다.");
         }
 
-        Set<MemberPreference> memberPreferenceRegions = new HashSet<>();
         for (Long locationId : request.getLocation_ids()) {
-            memberPreferenceRegions.add(
+            try {
+                memberPreferenceRepository.save(
                     MemberPreference.builder()
-                            .type(MemberPreferenceEnum.REGION)
-                            .member(member)
-                            .tag(tagRepository.findTagByTypeAndTagId(TagTypeEnum.REGION, locationId).orElseThrow(() -> new InvalidRequestException("존재하지 않는 지역입니다.")))
-                            .build()
-            );
+                        .type(MemberPreferenceEnum.REGION)
+                        .member(member)
+                        .tag(tagRepository.findTagByTypeAndTagId(TagTypeEnum.REGION, locationId).orElseThrow(() -> new InvalidRequestException("존재하지 않는 지역입니다.")))
+                        .build()
+                );
+            } catch (InvalidRequestException e) {
+                throw new InvalidRequestException(e.getMessage());
+            } catch (Exception ignored) {}
         }
-
-
-        memberPreferenceRepository.saveAll(memberPreferenceRegions);
         return memberRepository.save(member);
     }
 
     @Override
-    @Transactional
     public Member updatePurpose(MemberAuthDto principal, MemberPurposeRequest request) {
         Member member = memberRepository.findById(principal.getId()).orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
 
@@ -253,23 +251,24 @@ public class MemberServiceImpl implements MemberService {
             throw new InvalidRequestException("필수 파라미터가 누락되었습니다.");
         }
 
-        Set<MemberPreference> memberPurposes = new HashSet<>();
         for(Long purposeId: request.getPurpose_ids()) {
-            memberPurposes.add(
+            try {
+                memberPreferenceRepository.save(
                     MemberPreference.builder()
-                            .type(MemberPreferenceEnum.PURPOSE)
-                            .member(member)
-                            .tag(tagRepository.findTagByTypeAndTagId(TagTypeEnum.PURPOSE, purposeId).orElseThrow(() -> new InvalidRequestException("존재하지 않는 목적입니다.")))
-                            .build()
-            );
+                        .type(MemberPreferenceEnum.PURPOSE)
+                        .member(member)
+                        .tag(tagRepository.findTagByTypeAndTagId(TagTypeEnum.PURPOSE, purposeId).orElseThrow(() -> new InvalidRequestException("존재하지 않는 목적입니다.")))
+                        .build()
+                );
+            } catch (InvalidRequestException e) {
+                throw new InvalidRequestException(e.getMessage());
+            } catch (Exception ignored) {}
         }
 
-        memberPreferenceRepository.saveAll(memberPurposes);
         return memberRepository.save(member);
     }
 
     @Override
-    @Transactional
     public Member updateWorkspacePurpose(MemberAuthDto principal, MemberPurposeRequest request) {
         Member member = memberRepository.findById(principal.getId()).orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
 
@@ -279,18 +278,20 @@ public class MemberServiceImpl implements MemberService {
             throw new InvalidRequestException("최대 3개의 선택지를 선택할 수 있습니다.");
         }
 
-        Set<MemberPreference> memberWorkspacePurposes = new HashSet<>();
         for(Long id: request.getPurpose_ids()) {
-            memberWorkspacePurposes.add(
+            try {
+                memberPreferenceRepository.save(
                     MemberPreference.builder()
-                            .type(MemberPreferenceEnum.WORKSPACE_CATEGORY)
-                            .member(member)
-                            .tag(tagRepository.findTagByTypeAndTagId(TagTypeEnum.CATEGORY, id).orElseThrow(() -> new InvalidRequestException("존재하지 않는 목적입니다.")))
-                            .build()
-            );
+                        .type(MemberPreferenceEnum.WORKSPACE_CATEGORY)
+                        .member(member)
+                        .tag(tagRepository.findTagByTypeAndTagId(TagTypeEnum.CATEGORY, id).orElseThrow(() -> new InvalidRequestException("존재하지 않는 목적입니다.")))
+                        .build()
+                );
+            } catch (InvalidRequestException e) {
+                throw new InvalidRequestException(e.getMessage());
+            } catch (Exception ignored) {}
         }
 
-        memberPreferenceRepository.saveAll(memberWorkspacePurposes);
         return memberRepository.save(member);
     }
 
@@ -315,17 +316,23 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    @Transactional
     public ApiStatusResponse addStar(MemberAuthDto principal, Long workspaceId) {
         Member member = memberRepository.findById(principal.getId()).orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
         Workspace workspace = workspaceService.findWorkSpaceById(workspaceId);
 
-        MemberScrap memberScrap = memberScrapRepository.save(
+        try {
+            memberScrapRepository.save(
                 MemberScrap.builder()
-                        .member(member)
-                        .workspace(workspace)
-                        .build()
-        );
+                    .member(member)
+                    .workspace(workspace)
+                    .build()
+            );
+        } catch (Exception ignored) {
+            return ApiStatusResponse.builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .message("이미 스크랩한 워크스페이스입니다.")
+                .build();
+        }
 
         return ApiStatusResponse.builder()
                 .status(HttpStatus.OK.value())
