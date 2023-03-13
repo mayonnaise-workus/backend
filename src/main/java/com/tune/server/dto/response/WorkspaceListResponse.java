@@ -45,6 +45,10 @@ public class WorkspaceListResponse {
     @ApiModelProperty(value = "워크스페이스 수용 가능 인원")
     Long workspace_capacity;
 
+    @Setter
+    @ApiModelProperty(value = "워크스페이스 지역 ID")
+    Long workspace_region;
+
     public static WorkspaceListResponse of(WorkspaceTag workspaceTag) {
         return WorkspaceListResponse.builder()
                 .id(workspaceTag.getWorkspace().getId())

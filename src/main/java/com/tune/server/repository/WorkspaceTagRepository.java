@@ -6,6 +6,7 @@ import com.tune.server.enums.TagTypeEnum;
 import com.tune.server.enums.WorkspaceTagEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface WorkspaceTagRepository extends JpaRepository<WorkspaceTag, Long> {
@@ -15,4 +16,5 @@ public interface WorkspaceTagRepository extends JpaRepository<WorkspaceTag, Long
 
     List<WorkspaceTag> findAllByWorkspace_Id(Long workspaceId);
 
+    List<WorkspaceTag> findAllByTypeAndTag_TagIdIn(WorkspaceTagEnum type, Collection<Long> tag_tagId);
 }
