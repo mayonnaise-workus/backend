@@ -10,8 +10,10 @@ import com.tune.server.dto.response.ApiStatusResponse;
 import com.tune.server.dto.response.MemberOnboardingResponse;
 import com.tune.server.dto.response.MemberPreferencesResponse;
 import com.tune.server.dto.response.MemberScrapListResponse;
+import com.tune.server.dto.response.WorkspaceListResponse;
 import com.tune.server.enums.MemberPreferenceEnum;
 import com.tune.server.enums.TagTypeEnum;
+import com.tune.server.enums.WorkspaceTagEnum;
 import com.tune.server.exceptions.login.TokenExpiredException;
 import com.tune.server.exceptions.member.InvalidRequestException;
 import com.tune.server.exceptions.member.MemberNotFoundException;
@@ -42,7 +44,8 @@ public class MemberServiceImpl implements MemberService {
     private MemberPreferenceRepository memberPreferenceRepository;
     private MemberScrapRepository memberScrapRepository;
     private WorkspaceService workspaceService;
-    private EntityManager entityManager;
+
+    private WorkspaceTagRepository workspaceTagRepository;
     private AuthService authService;
 
     @Override
@@ -358,9 +361,35 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public MemberScrapListResponse getStarList(MemberAuthDto principal) {
         List<MemberScrap> memberScraps = memberScrapRepository.findAllByMemberId(principal.getId());
+        List<WorkspaceListResponse> workspaceListResponses = new LinkedList<>();
 
+        for (MemberScrap memberScrap : memberScraps) {
+            List<WorkspaceTag> workspaceTags = workspaceTagRepository.findAllByWorkspace_Id(
+                memberScrap.getWorkspace().getId());
+            WorkspaceListResponse response = WorkspaceListResponse.of(memberScrap);
 
-        return MemberScrapListResponse.of(memberScraps);
+            response.setWorkspace_capacity(workspaceTags.stream()
+                .filter(workspaceTag -> workspaceTag.getType() == WorkspaceTagEnum.CAPACITY)
+                .collect(Collectors.toList()).get(0).getTag().getTagId());
+
+            response.setWorkspace_obj(workspaceTags.stream()
+                .filter(workspaceTag -> workspaceTag.getType() == WorkspaceTagEnum.PURPOSE)
+                .collect(Collectors.toList()).get(0).getTag().getTagId());
+
+            response.setWorkspace_region(workspaceTags.stream()
+                .filter(workspaceTag -> workspaceTag.getType() == WorkspaceTagEnum.REGION)
+                .collect(Collectors.toList()).get(0).getTag().getTagId());
+
+            response.setWorkspace_type(workspaceTags.stream()
+                .filter(workspaceTag -> workspaceTag.getType() == WorkspaceTagEnum.CATEGORY)
+                .collect(Collectors.toList()).get(0).getTag().getTagId());
+
+            workspaceListResponses.add(response);
+        }
+
+        return MemberScrapListResponse.builder()
+                .list(workspaceListResponses)
+                .build();
     }
 
     @Override
