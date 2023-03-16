@@ -3,6 +3,7 @@ package com.tune.server.filter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
 import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
+import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.tune.server.domain.Member;
@@ -13,7 +14,11 @@ import com.tune.server.service.member.MemberService;
 import com.tune.server.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -54,7 +59,7 @@ public class GoogleLoginFilter extends OncePerRequestFilter {
                         clientSecret,
                         googleLoginRequest.getServerAuthCode(),
                         ""
-                ).execute();
+                ).set("access_type", "offline").set("prompt", "consent").execute();
 
                 // 3. Google 회원가입 및 로그인
                 if (!memberService.isExistMember(googleLoginRequest)) {
