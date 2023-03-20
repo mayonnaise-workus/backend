@@ -13,7 +13,6 @@ public class AppleAuthTokenDto {
     private String expires_in;
     private String refresh_token;
     private String id_token;
-
     @Setter
     private String user_id;
 }

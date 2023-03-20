@@ -119,6 +119,64 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    public boolean signUp_v2(AppleAuthTokenDto appleAuthTokenDto, AppleLoginRequest appleLoginRequest) {
+        try {
+            Member member = Member
+                    .builder()
+                    .name(appleLoginRequest.getName())
+                    .marketingAgreement(appleLoginRequest.isMarketing_agreement())
+                    .personalInformationAgreement(appleLoginRequest.isPersonal_information_agreement())
+                    .refreshToken(JwtUtil.generateRefreshToken())
+                    .refreshTokenExpiresAt(LocalDateTime.now().plusMonths(JwtUtil.REFRESH_TOKEN_EXPIRES_MONTH))
+                    .build();
+
+            MemberProvider memberProvider = MemberProvider.builder()
+                    .providerId(appleAuthTokenDto.getUser_id())
+                    .refreshToken(appleAuthTokenDto.getRefresh_token())
+                    .member(member)
+                    .provider("APPLE")
+                    .build();
+
+            List<MemberPreference> memberPreferences = new ArrayList<>();
+            memberPreferences.addAll(appleLoginRequest.getWorkspace_purpose_ids().stream().map(id -> {
+                MemberPreference memberPreference = MemberPreference.builder()
+                        .member(member)
+                        .type(MemberPreferenceEnum.WORKSPACE_CATEGORY)
+                        .tag(tagRepository.findTagByTypeAndTagId(TagTypeEnum.CATEGORY, Long.valueOf(id)).orElseThrow(() -> new TagNotFoundException("해당하는 태그가 없습니다.")))
+                        .build();
+                memberPreferences.add(memberPreference);
+                return memberPreference;
+            }).collect(Collectors.toList()));
+            memberPreferences.addAll(appleLoginRequest.getPurpose_ids().stream().map(id -> {
+                MemberPreference memberPreference = MemberPreference.builder()
+                        .member(member)
+                        .type(MemberPreferenceEnum.PURPOSE)
+                        .tag(tagRepository.findTagByTypeAndTagId(TagTypeEnum.PURPOSE ,Long.valueOf(id)).orElseThrow(() -> new TagNotFoundException("해당하는 태그가 없습니다.")))
+                        .build();
+                memberPreferences.add(memberPreference);
+                return memberPreference;
+            }).collect(Collectors.toList()));
+            memberPreferences.addAll(appleLoginRequest.getLocation_ids().stream().map(id -> {
+                MemberPreference memberPreference = MemberPreference.builder()
+                        .member(member)
+                        .type(MemberPreferenceEnum.REGION)
+                        .tag(tagRepository.findTagByTypeAndTagId(TagTypeEnum.REGION, Long.valueOf(id)).orElseThrow(() -> new TagNotFoundException("해당하는 태그가 없습니다.")))
+                        .build();
+                memberPreferences.add(memberPreference);
+                return memberPreference;
+            }).collect(Collectors.toList()));
+
+            memberRepository.save(member);
+            memberPreferenceRepository.saveAll(memberPreferences);
+            memberProviderRepository.save(memberProvider);
+            return true;
+        } catch (Exception e) {
+            log.error("회원가입 실패", e);
+            return false;
+        }
+    }
+
+    @Override
     @Transactional
     public boolean signUp(GoogleLoginRequest request, GoogleTokenResponse tokenResponse) {
         try {
@@ -168,7 +226,7 @@ public class MemberServiceImpl implements MemberService {
                 MemberPreference memberPreference = MemberPreference.builder()
                         .member(member)
                         .type(MemberPreferenceEnum.WORKSPACE_CATEGORY)
-                        .tag(tagRepository.findTagByTypeAndTagId(TagTypeEnum.REGION, Long.valueOf(id)).orElseThrow(() -> new TagNotFoundException("해당하는 태그가 없습니다.")))
+                        .tag(tagRepository.findTagByTypeAndTagId(TagTypeEnum.CATEGORY, Long.valueOf(id)).orElseThrow(() -> new TagNotFoundException("해당하는 태그가 없습니다.")))
                         .build();
                 memberPreferences.add(memberPreference);
                 return memberPreference;
