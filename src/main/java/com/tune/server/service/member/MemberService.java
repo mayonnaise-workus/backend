@@ -24,6 +24,9 @@ public interface MemberService {
     boolean signUp(AppleAuthTokenDto appleAuthTokenDto);
 
     boolean signUp(GoogleLoginRequest request, GoogleTokenResponse tokenResponse);
+
+    boolean signUp_v2(GoogleLoginRequest googleLoginRequest, GoogleTokenResponse googleTokenResponse);
+
     Member getMember(KakaoUserInfo kakaoUserInfo);
     Member getMember(AppleAuthTokenDto appleAuthTokenDto);
 
@@ -55,4 +58,5 @@ public interface MemberService {
     ApiStatusResponse deleteMember(MemberAuthDto principal);
 
     ApiStatusResponse validateName(ValidateMemberNameRequest request);
+
 }

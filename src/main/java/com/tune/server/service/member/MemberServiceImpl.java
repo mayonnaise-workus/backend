@@ -17,6 +17,7 @@ import com.tune.server.enums.WorkspaceTagEnum;
 import com.tune.server.exceptions.login.TokenExpiredException;
 import com.tune.server.exceptions.member.InvalidRequestException;
 import com.tune.server.exceptions.member.MemberNotFoundException;
+import com.tune.server.exceptions.tag.TagNotFoundException;
 import com.tune.server.repository.*;
 import com.tune.server.service.AuthService;
 import com.tune.server.service.workspace.WorkspaceService;
@@ -135,6 +136,65 @@ public class MemberServiceImpl implements MemberService {
                     .build();
 
             memberRepository.save(member);
+            memberProviderRepository.save(memberProvider);
+            return true;
+        } catch (Exception e) {
+            log.error("회원가입 실패", e);
+            return false;
+        }
+    }
+
+    @Override
+    public boolean signUp_v2(GoogleLoginRequest googleLoginRequest, GoogleTokenResponse googleTokenResponse) {
+        try {
+            Member member = Member
+                    .builder()
+                    .name(googleLoginRequest.getName())
+                    .marketingAgreement(googleLoginRequest.isMarketing_agreement())
+                    .personalInformationAgreement(googleLoginRequest.isPersonal_information_agreement())
+                    .refreshToken(JwtUtil.generateRefreshToken())
+                    .refreshTokenExpiresAt(LocalDateTime.now().plusMonths(JwtUtil.REFRESH_TOKEN_EXPIRES_MONTH))
+                    .build();
+
+            MemberProvider memberProvider = MemberProvider.builder()
+                    .providerId(googleLoginRequest.getId())
+                    .refreshToken(googleTokenResponse.getRefreshToken())
+                    .member(member)
+                    .provider("GOOGLE")
+                    .build();
+
+            List<MemberPreference> memberPreferences = new ArrayList<>();
+            memberPreferences.addAll(googleLoginRequest.getWorkspace_purpose_ids().stream().map(id -> {
+                MemberPreference memberPreference = MemberPreference.builder()
+                        .member(member)
+                        .type(MemberPreferenceEnum.WORKSPACE_CATEGORY)
+                        .tag(tagRepository.findTagByTypeAndTagId(TagTypeEnum.REGION, Long.valueOf(id)).orElseThrow(() -> new TagNotFoundException("해당하는 태그가 없습니다.")))
+                        .build();
+                memberPreferences.add(memberPreference);
+                return memberPreference;
+            }).collect(Collectors.toList()));
+            memberPreferences.addAll(googleLoginRequest.getPurpose_ids().stream().map(id -> {
+                MemberPreference memberPreference = MemberPreference.builder()
+                        .member(member)
+                        .type(MemberPreferenceEnum.PURPOSE)
+                        .tag(tagRepository.findTagByTypeAndTagId(TagTypeEnum.PURPOSE ,Long.valueOf(id)).orElseThrow(() -> new TagNotFoundException("해당하는 태그가 없습니다.")))
+                        .build();
+                memberPreferences.add(memberPreference);
+                return memberPreference;
+            }).collect(Collectors.toList()));
+            memberPreferences.addAll(googleLoginRequest.getLocation_ids().stream().map(id -> {
+                MemberPreference memberPreference = MemberPreference.builder()
+                        .member(member)
+                        .type(MemberPreferenceEnum.REGION)
+                        .tag(tagRepository.findTagByTypeAndTagId(TagTypeEnum.REGION, Long.valueOf(id)).orElseThrow(() -> new TagNotFoundException("해당하는 태그가 없습니다.")))
+                        .build();
+                memberPreferences.add(memberPreference);
+                return memberPreference;
+            }).collect(Collectors.toList()));
+
+
+            memberRepository.save(member);
+            memberPreferenceRepository.saveAll(memberPreferences);
             memberProviderRepository.save(memberProvider);
             return true;
         } catch (Exception e) {
