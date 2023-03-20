@@ -53,4 +53,6 @@ public interface MemberService {
     MemberPreferencesResponse getPreferences(MemberAuthDto principal);
 
     ApiStatusResponse deleteMember(MemberAuthDto principal);
+
+    ApiStatusResponse validateName(ValidateMemberNameRequest request);
 }

@@ -177,5 +177,4 @@ public class MemberController {
         return ResponseEntity.ok(memberService.getStarList((MemberAuthDto) authentication.getPrincipal()));
     }
 
-
 }

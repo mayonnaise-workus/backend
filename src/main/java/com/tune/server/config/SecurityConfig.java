@@ -40,23 +40,21 @@ public class SecurityConfig {
 
     @Bean
     protected DefaultSecurityFilterChain configure(HttpSecurity http) throws Exception {
-        return http
-                .cors().disable()
-                .csrf().disable()
-                .formLogin().disable()
-                .authorizeRequests()
-                    .antMatchers("/refresh").permitAll()
-                    .antMatchers("/login/**").authenticated()
-                    .antMatchers("/member/**").authenticated()
-                .and()
-                .addFilterBefore(new KakaoLoginFilter("/login/kakao", objectMapper, memberService), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(appleLoginFilter, KakaoLoginFilter.class)
-                .addFilterBefore(googleLoginFilter, AppleLoginFilter.class)
-                .addFilterBefore(new ExceptionHandlerFilter(), GoogleLoginFilter.class)
-                .addFilterAfter(new JwtAuthenticationFilter(objectMapper, memberService), KakaoLoginFilter.class)
-                .build();
+            return http
+                    .cors().disable()
+                    .csrf().disable()
+                    .formLogin().disable()
+                    .authorizeRequests()
+                        .antMatchers("/refresh", "/validation/name").permitAll()
+                        .antMatchers("/login/**").authenticated()
+                        .antMatchers("/member/**").authenticated()
+                    .and()
+                    .addFilterBefore(new KakaoLoginFilter("/login/kakao", objectMapper, memberService), UsernamePasswordAuthenticationFilter.class)
+                    .addFilterBefore(appleLoginFilter, KakaoLoginFilter.class)
+                    .addFilterBefore(googleLoginFilter, AppleLoginFilter.class)
+                    .addFilterBefore(new ExceptionHandlerFilter(), GoogleLoginFilter.class)
+                    .addFilterAfter(new JwtAuthenticationFilter(objectMapper, memberService), KakaoLoginFilter.class)
+                    .build();
     }
-
-
 
 }

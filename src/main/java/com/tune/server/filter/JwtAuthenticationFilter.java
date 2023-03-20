@@ -61,6 +61,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        return "/refresh".equals(request.getRequestURI());
+        String requestUrl = request.getRequestURI();
+        return requestUrl.equals("/refresh") || requestUrl.equals("/validation/name");
     }
 }

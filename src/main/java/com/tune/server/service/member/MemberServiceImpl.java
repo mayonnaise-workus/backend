@@ -444,4 +444,23 @@ public class MemberServiceImpl implements MemberService {
                 .build();
     }
 
+    @Override
+    public ApiStatusResponse validateName(ValidateMemberNameRequest request) {
+        boolean memberExist = memberRepository.findByName(request.getName()).isPresent();
+
+        if (memberExist) {
+          return ApiStatusResponse
+              .builder()
+              .status(HttpStatus.NOT_ACCEPTABLE.value())
+              .message("이미 존재하는 닉네임 입니다.")
+              .build();
+        }
+
+        return ApiStatusResponse
+            .builder()
+            .status(HttpStatus.ACCEPTED.value())
+            .message("사용 가능한 닉네임 입니다.")
+            .build();
+    }
+
 }
