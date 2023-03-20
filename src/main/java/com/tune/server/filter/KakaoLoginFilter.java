@@ -53,8 +53,12 @@ public class KakaoLoginFilter extends OncePerRequestFilter {
 
             // 2. 회원 정보로 로그인/회원가입 처리
             if (!memberService.isExistMember(kakaoUserInfo)) {
-                // 회원가입 처리
-                if (!memberService.signUp(kakaoUserInfo)) {
+                // [v2] 회원가입
+                if (kakaoTokenRequest.getName() != null && kakaoTokenRequest.getName().length() > 0) {
+                  if (!memberService.signUp_v2(kakaoUserInfo, kakaoTokenRequest)) {
+                    throw new InternalError("회원가입에 실패했습니다.");
+                  }
+                } else if (!memberService.signUp(kakaoUserInfo)) {
                     throw new InternalError("회원가입에 실패했습니다.");
                 }
             }
