@@ -93,66 +93,6 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public boolean signUp_v2(KakaoUserInfo kakaoUserInfo, KakaoTokenRequest kakaoTokenRequest) {
-        try {
-            Member member = Member
-                    .builder()
-                    .name(kakaoTokenRequest.getName())
-                    .marketingAgreement(kakaoTokenRequest.isMarketing_agreement())
-                    .personalInformationAgreement(kakaoTokenRequest.isPersonal_information_agreement())
-                    .refreshToken(JwtUtil.generateRefreshToken())
-                    .refreshTokenExpiresAt(LocalDateTime.now().plusMonths(JwtUtil.REFRESH_TOKEN_EXPIRES_MONTH))
-                    .build();
-
-            MemberProvider memberProvider = MemberProvider.builder()
-                    .providerId(kakaoUserInfo.getId().toString())
-                    .refreshToken(kakaoUserInfo.getRefreshToken())
-                    .member(member)
-                    .provider("KAKAO")
-                    .build();
-
-            List<MemberPreference> memberPreferences = new ArrayList<>();
-            memberPreferences.addAll(kakaoTokenRequest.getWorkspace_purpose_ids().stream().map(id -> {
-                MemberPreference memberPreference = MemberPreference.builder()
-                        .member(member)
-                        .type(MemberPreferenceEnum.WORKSPACE_CATEGORY)
-                        .tag(tagRepository.findTagByTypeAndTagId(TagTypeEnum.CATEGORY, Long.valueOf(id)).orElseThrow(() -> new TagNotFoundException("해당하는 태그가 없습니다.")))
-                        .build();
-                memberPreferences.add(memberPreference);
-                return memberPreference;
-            }).collect(Collectors.toList()));
-
-            memberPreferences.addAll(kakaoTokenRequest.getPurpose_ids().stream().map(id -> {
-                MemberPreference memberPreference = MemberPreference.builder()
-                        .member(member)
-                        .type(MemberPreferenceEnum.PURPOSE)
-                        .tag(tagRepository.findTagByTypeAndTagId(TagTypeEnum.PURPOSE, Long.valueOf(id)).orElseThrow(() -> new TagNotFoundException("해당하는 태그가 없습니다.")))
-                        .build();
-                memberPreferences.add(memberPreference);
-                return memberPreference;
-            }).collect(Collectors.toList()));
-
-            memberPreferences.addAll(kakaoTokenRequest.getLocation_ids().stream().map(id -> {
-                MemberPreference memberPreference = MemberPreference.builder()
-                        .member(member)
-                        .type(MemberPreferenceEnum.REGION)
-                        .tag(tagRepository.findTagByTypeAndTagId(TagTypeEnum.REGION, Long.valueOf(id)).orElseThrow(() -> new TagNotFoundException("해당하는 태그가 없습니다.")))
-                        .build();
-                memberPreferences.add(memberPreference);
-                return memberPreference;
-            }).collect(Collectors.toList()));
-
-            memberPreferenceRepository.saveAll(memberPreferences);
-            memberRepository.save(member);
-            memberProviderRepository.save(memberProvider);
-            return true;
-        } catch (Exception e) {
-            log.error("회원가입 실패", e);
-            return false;
-        }
-    }
-
-    @Override
     @Transactional
     public boolean signUp(AppleAuthTokenDto appleAuthTokenDto) {
         try {

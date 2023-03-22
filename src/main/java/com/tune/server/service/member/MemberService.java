@@ -21,8 +21,6 @@ public interface MemberService {
 
     boolean isExistMember(GoogleLoginRequest googleLoginRequest);
     boolean signUp(KakaoUserInfo kakaoUserInfo);
-    boolean signUp_v2(KakaoUserInfo kakaoUserInfo, KakaoTokenRequest kakaoTokenRequest);
-
     boolean signUp(AppleAuthTokenDto appleAuthTokenDto);
     boolean signUp_v2(AppleAuthTokenDto appleAuthTokenDto, AppleLoginRequest appleLoginRequest);
 

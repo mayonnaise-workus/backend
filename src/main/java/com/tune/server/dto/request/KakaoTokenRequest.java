@@ -28,7 +28,6 @@ public class KakaoTokenRequest {
     @ApiModelProperty(value = "카카오 access token 만료 시간", required = true)
     private int expires_in;
 
-    private String name;
     private boolean marketing_agreement;
 
     private boolean personal_information_agreement;
