@@ -2,11 +2,15 @@ package com.tune.server.dto.request;
 
 import io.swagger.annotations.ApiModelProperty;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class MemberOnboardingRequest {
 
     @ApiModelProperty(value = "회원 이름", required = true)

@@ -33,6 +33,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.springframework.web.client.HttpClientErrorException.BadRequest;
 
 @Service
 @Slf4j
@@ -468,17 +469,23 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public ApiStatusResponse updateOnboardingStatus(MemberAuthDto principal, MemberOnboardingRequest request) {
 
-        // 회원의 선호 지역을 업데이트 한다.
-        updatePreferenceLocation(principal, MemberPreferenceRegionRequest.of(request.getLocation_ids()));
+        try {
+            // 회원의 선호 지역을 업데이트 한다.
+            updatePreferenceLocation(principal,
+                MemberPreferenceRegionRequest.of(request.getLocation_ids()));
 
-        // 회원의 업무 목적을 업데이트 한다.
-        updatePurpose(principal, MemberPurposeRequest.of(request.getPurpose_ids()));
+            // 회원의 업무 목적을 업데이트 한다.
+            updatePurpose(principal, MemberPurposeRequest.of(request.getPurpose_ids()));
 
-        // 회원의 선호 워크스페이스 카테고리를 업데이트 한다.
-        updateWorkspacePurpose(principal, MemberPurposeRequest.of(request.getWorkspace_purpose_ids()));
+            // 회원의 선호 워크스페이스 카테고리를 업데이트 한다.
+            updateWorkspacePurpose(principal,
+                MemberPurposeRequest.of(request.getWorkspace_purpose_ids()));
 
-        // 회원의 이름을 업데이트 한다.
-        updateName(principal, MemberNameRequest.of(request.getName()));
+            // 회원의 이름을 업데이트 한다.
+            updateName(principal, MemberNameRequest.of(request.getName()));
+        } catch (Exception e) {
+            throw new InvalidRequestException("회원의 정보 변경에 실패하였습니다.");
+        }
 
         return ApiStatusResponse.builder()
                 .status(HttpStatus.OK.value())

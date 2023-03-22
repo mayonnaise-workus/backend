@@ -5,10 +5,12 @@ import com.tune.server.dto.MemberAuthDto;
 import com.tune.server.dto.kakao.KakaoUserInfo;
 import com.tune.server.dto.request.MemberAgreementRequest;
 import com.tune.server.dto.request.MemberNameRequest;
+import com.tune.server.dto.request.MemberOnboardingRequest;
 import com.tune.server.dto.request.MemberPreferenceRegionRequest;
 import com.tune.server.dto.request.MemberPurposeRequest;
 import com.tune.server.dto.response.ApiStatusResponse;
 import com.tune.server.dto.response.MemberOnboardingResponse;
+import com.tune.server.dto.response.MemberPreferencesResponse;
 import com.tune.server.dto.response.MemberScrapListResponse;
 import com.tune.server.enums.MemberPreferenceEnum;
 import com.tune.server.exceptions.login.TokenExpiredException;
@@ -19,6 +21,7 @@ import com.tune.server.repository.*;
 import com.tune.server.service.AuthService;
 import com.tune.server.service.workspace.WorkspaceServiceImpl;
 import com.tune.server.util.JwtUtil;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -281,6 +284,7 @@ class MemberServiceTest {
 
         // when & then
         assertThrows(InvalidRequestException.class, () -> memberService.updateName(new MemberAuthDto(member.getId()), new MemberNameRequest("")));
+        assertDoesNotThrow(() -> memberService.updateName(new MemberAuthDto(member.getId()), new MemberNameRequest("n")));
     }
 
 
@@ -571,6 +575,22 @@ class MemberServiceTest {
     }
 
     @Test
+    @DisplayName("회원 워크스페이스 스크랩 등록 테스트 - 스크랩을 중복 등록하는 경우")
+    void scrapDuplicateWorkspace() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+        memberService.addStar(new MemberAuthDto(member.getId()), 1L);
+
+        // when
+        ApiStatusResponse apiStatusResponse = memberService.addStar(
+            new MemberAuthDto(member.getId()), 1L);
+
+        // then
+        assertEquals(apiStatusResponse.getStatus(), HttpStatus.BAD_REQUEST.value());
+    }
+
+    @Test
     @DisplayName("회원 워크스페이스 스크랩 삭제 테스트 - 존재하지 않는 스크랩을 삭제하는 경우 404 예외 발생")
     void scrapWorkspaceDelete2() {
         // given
@@ -601,4 +621,104 @@ class MemberServiceTest {
         // then
         assertEquals(starList.getList().size(), 3);
     }
+
+    @Test
+    @DisplayName("회원 온보딩 진행 상황 업데이트 테스트 - 모든 온보딩을 정상적으로 진행한 경우")
+    void updateOnboardingStatus() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+        MemberOnboardingRequest request = MemberOnboardingRequest.builder()
+            .purpose_ids(Set.of(1, 2, 3))
+            .workspace_purpose_ids(Set.of(1, 2, 3))
+            .marketing_agreement(true)
+            .personal_information_agreement(true)
+            .location_ids(Set.of(1, 2, 3))
+            .name("test")
+            .build();
+
+
+        // when
+        ApiStatusResponse apiStatusResponse = memberService.updateOnboardingStatus(
+            new MemberAuthDto(member.getId()), request);
+
+        // then
+        assertEquals(apiStatusResponse.getStatus(), HttpStatus.OK.value());
+
+        Member resultMember = memberRepository.findById(member.getId()).get();
+        assertEquals(resultMember.getName(), "test");
+
+        MemberPreferencesResponse preferences = memberService.getPreferences(
+            new MemberAuthDto(member.getId()));
+        assertEquals(preferences.getPreference_workspace_purposes().size(), 3);
+        assertEquals(preferences.getPreference_workspace_regions().size(), 3);
+        assertEquals(preferences.getPreference_workspace_types().size(), 3);
+    }
+
+    @Test
+    @DisplayName("회원 온보딩 진행 상황 업데이트 테스트 - 이름의 길이가 1자 미만인 경우 400 에러를 되돌려준다")
+    void updateOnboardingStatus2() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+        MemberOnboardingRequest request = MemberOnboardingRequest.builder()
+            .purpose_ids(Set.of(1, 2, 3))
+            .workspace_purpose_ids(Set.of(1, 2, 3))
+            .marketing_agreement(true)
+            .personal_information_agreement(true)
+            .location_ids(Set.of(1, 2, 3))
+            .name("")
+            .build();
+
+        // when & then
+        assertThrows(InvalidRequestException.class, () -> {
+            memberService.updateOnboardingStatus(
+                new MemberAuthDto(member.getId()), request);
+        });
+    }
+
+    @Test
+    @DisplayName("회원 온보딩 진행 상황 업데이트 테스트 - 이름의 길이가 20자를 초과하는 경우 400 에러를 되돌려준다")
+    void updateOnboardingStatus3() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+        MemberOnboardingRequest request = MemberOnboardingRequest.builder()
+            .purpose_ids(Set.of(1, 2, 3))
+            .workspace_purpose_ids(Set.of(1, 2, 3))
+            .marketing_agreement(true)
+            .personal_information_agreement(true)
+            .location_ids(Set.of(1, 2, 3))
+            .name("123456789012345678901")
+            .build();
+
+        // when & then
+        assertThrows(InvalidRequestException.class, () -> {
+            memberService.updateOnboardingStatus(
+                new MemberAuthDto(member.getId()), request);
+        });
+    }
+
+    @Test
+    @DisplayName("회원 온보딩 진행 상황 업데이트 테스트 - 선호 워크 스페이스 타입이 4개 이상인 경우 400 에러를 되돌려준다")
+    void updateOnboardingStatus4() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+        MemberOnboardingRequest request = MemberOnboardingRequest.builder()
+            .purpose_ids(Set.of(1, 2, 3))
+            .workspace_purpose_ids(Set.of(1, 2, 3, 4))
+            .marketing_agreement(true)
+            .personal_information_agreement(true)
+            .location_ids(Set.of(1, 2, 3))
+            .name("test")
+            .build();
+
+        // when & then
+        assertThrows(InvalidRequestException.class, () -> {
+            memberService.updateOnboardingStatus(
+                new MemberAuthDto(member.getId()), request);
+        });
+    }
+
 }
