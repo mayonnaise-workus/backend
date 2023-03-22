@@ -63,6 +63,13 @@ public class MemberController {
         return ResponseEntity.ok(memberService.getOnboardingStatus((MemberAuthDto) authentication.getPrincipal()));
     }
 
+    @ApiResponses(
+        value = {
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 - 이름이 1글자 미만 | 이름이 20글자 이상 | 워크스페이스 카테고리가 3개보다 많은 경우 | 값 검증에 실패한 경우"),
+            @ApiResponse(responseCode = "403", description = "권한 없음"),
+        }
+    )
     @PostMapping("/member/onboarding")
     @ApiOperation(value = "회원 온보딩 결과 업데이트", notes = "회원 온보딩 정보를 업데이트합니다.")
     public ResponseEntity<ApiStatusResponse> updateMemberOnboarding(@ApiIgnore Authentication authentication, @RequestBody MemberOnboardingRequest request) {
