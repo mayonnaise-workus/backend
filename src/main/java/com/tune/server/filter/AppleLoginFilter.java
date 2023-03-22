@@ -72,14 +72,9 @@ public class AppleLoginFilter extends OncePerRequestFilter {
 
             // 3. 회원정보로 로그인/회원가입
             if (!memberService.isExistMember(appleAuthTokenDto)) {
-                if (appleLoginRequest.getName() != null && appleLoginRequest.getName().length() > 0) { // [v2] 회원가입
-                    if (!memberService.signUp_v2(appleAuthTokenDto, appleLoginRequest)) {
-                        throw new InternalError("회원가입에 실패했습니다.");
-                    }
-                } else { // [v1] 회원가입
-                    if (!memberService.signUp(appleAuthTokenDto)) {
-                        throw new InternalError("회원가입에 실패했습니다.");
-                    }
+                // 회원가입
+                if (!memberService.signUp(appleAuthTokenDto)) {
+                    throw new InternalError("회원가입에 실패했습니다.");
                 }
             }
 
