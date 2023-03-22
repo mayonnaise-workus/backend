@@ -63,15 +63,8 @@ public class GoogleLoginFilter extends OncePerRequestFilter {
 
                 // 3. Google 회원가입 및 로그인
                 if (!memberService.isExistMember(googleLoginRequest)) {
-                    if (googleLoginRequest.getName() != null && googleLoginRequest.getName().length() > 0) { // [v2] 회원가입
-                        if (!memberService.signUp_v2(googleLoginRequest, googleTokenResponse)) {
-                            throw new InternalError("회원가입에 실패했습니다.");
-                        }
-                    } else { // [v1] 회원가입
-                        if (!memberService.signUp(googleLoginRequest, googleTokenResponse)) {
-                            throw new InternalError("회원가입에 실패했습니다.");
-                        }
-                    }
+                    if (!memberService.signUp(googleLoginRequest, googleTokenResponse))
+                        throw new InternalError("회원가입에 실패했습니다.");
                 }
 
                 // 4. JWT 토큰 발급
