@@ -57,4 +57,5 @@ public interface MemberService {
 
     ApiStatusResponse validateName(ValidateMemberNameRequest request);
 
+    ApiStatusResponse updateOnboardingStatus(MemberAuthDto principal, MemberOnboardingRequest request);
 }

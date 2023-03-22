@@ -63,6 +63,12 @@ public class MemberController {
         return ResponseEntity.ok(memberService.getOnboardingStatus((MemberAuthDto) authentication.getPrincipal()));
     }
 
+    @PostMapping("/member/onboarding")
+    @ApiOperation(value = "회원 온보딩 결과 업데이트", notes = "회원 온보딩 정보를 업데이트합니다.")
+    public ResponseEntity<ApiStatusResponse> updateMemberOnboarding(@ApiIgnore Authentication authentication, @RequestBody MemberOnboardingRequest request) {
+        return ResponseEntity.ok(memberService.updateOnboardingStatus((MemberAuthDto) authentication.getPrincipal(), request));
+    }
+
     @PostMapping("/member/agreement")
     @ApiResponses(
             value = {

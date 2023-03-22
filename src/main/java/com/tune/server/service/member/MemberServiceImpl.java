@@ -464,4 +464,24 @@ public class MemberServiceImpl implements MemberService {
             .build();
     }
 
+    @Override
+    @Transactional
+    public ApiStatusResponse updateOnboardingStatus(MemberAuthDto principal, MemberOnboardingRequest request) {
+
+        // 회원의 선호 지역을 업데이트 한다.
+        updatePreferenceLocation(principal, MemberPreferenceRegionRequest.of(request.getLocation_ids()));
+
+        // 회원의 업무 목적을 업데이트 한다.
+        updatePurpose(principal, MemberPurposeRequest.of(request.getPurpose_ids()));
+
+        // 회원의 선호 워크스페이스 카테고리를 업데이트 한다.
+        updateWorkspacePurpose(principal, MemberPurposeRequest.of(request.getWorkspace_purpose_ids()));
+
+
+        return ApiStatusResponse.builder()
+                .status(HttpStatus.OK.value())
+                .message("회원의 정보 변경에 성공하였습니다.")
+                .build();
+    }
+
 }
