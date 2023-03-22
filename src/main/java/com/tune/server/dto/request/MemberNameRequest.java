@@ -11,4 +11,10 @@ import javax.validation.constraints.Size;
 @ToString
 public class MemberNameRequest {
     private String name;
+
+    public static MemberNameRequest of(String name) {
+        return MemberNameRequest.builder()
+                .name(name)
+                .build();
+    }
 }

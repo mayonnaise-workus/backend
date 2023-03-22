@@ -477,6 +477,8 @@ public class MemberServiceImpl implements MemberService {
         // 회원의 선호 워크스페이스 카테고리를 업데이트 한다.
         updateWorkspacePurpose(principal, MemberPurposeRequest.of(request.getWorkspace_purpose_ids()));
 
+        // 회원의 이름을 업데이트 한다.
+        updateName(principal, MemberNameRequest.of(request.getName()));
 
         return ApiStatusResponse.builder()
                 .status(HttpStatus.OK.value())
