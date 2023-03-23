@@ -225,27 +225,30 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    @Transactional
     public Member updatePreferenceLocation(MemberAuthDto principal, MemberPreferenceRegionRequest request) {
         Member member = memberRepository.findById(principal.getId()).orElseThrow(() -> new MemberNotFoundException("해당하는 회원이 없습니다."));
 
         if (request.getLocation_ids() == null || request.getLocation_ids().size() == 0) {
             throw new InvalidRequestException("필수 파라미터가 누락되었습니다.");
         }
+        // 기존 설정 삭제
+        memberPreferenceRepository.deleteAllByMemberAndType(member, MemberPreferenceEnum.REGION);
 
-        for (Long locationId : request.getLocation_ids()) {
-            try {
-                memberPreferenceRepository.save(
-                    MemberPreference.builder()
-                        .type(MemberPreferenceEnum.REGION)
-                        .member(member)
-                        .tag(tagRepository.findTagByTypeAndTagId(TagTypeEnum.REGION, locationId).orElseThrow(() -> new InvalidRequestException("존재하지 않는 지역입니다.")))
-                        .build()
-                );
-            } catch (InvalidRequestException e) {
-                throw new InvalidRequestException(e.getMessage());
-            } catch (Exception ignored) {}
+        Set<Long> locationIds = new HashSet<>(request.getLocation_ids());
+        Set<MemberPreference> memberPreferences = new HashSet<>();
+        for (Long locationId : locationIds) {
+            memberPreferences.add (
+                MemberPreference.builder()
+                    .type(MemberPreferenceEnum.REGION)
+                    .member(member)
+                    .tag(tagRepository.findTagByTypeAndTagId(TagTypeEnum.REGION, locationId).orElseThrow(() -> new InvalidRequestException("존재하지 않는 지역입니다.")))
+                    .build()
+            );
         }
-        return memberRepository.save(member);
+
+        memberPreferenceRepository.saveAll(memberPreferences);
+        return member;
     }
 
     @Override

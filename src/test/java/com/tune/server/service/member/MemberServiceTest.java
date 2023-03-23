@@ -721,4 +721,98 @@ class MemberServiceTest {
         });
     }
 
+    @Test
+    @DisplayName("회원의 선호 지역 변경 - 선호 지역을 정상적으로 변경하는 경우")
+    void updateLocation() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+        MemberPreferenceRegionRequest request = MemberPreferenceRegionRequest.builder()
+            .location_ids(List.of(1L, 2L, 3L))
+            .build();
+
+        // when
+        Member resultMember = memberService.updatePreferenceLocation(
+            new MemberAuthDto(member.getId()), request);
+
+        // then
+        assertNotNull(resultMember);
+
+        MemberPreferencesResponse preferences = memberService.getPreferences(
+            new MemberAuthDto(member.getId()));
+        assertEquals(preferences.getPreference_workspace_regions().size(), 3);
+    }
+
+    @Test
+    @DisplayName("회원의 선호 지역 변경 - 변경된 지역에 중복이 있는 경우 중복을 제거 후 업데이트를 진행한다.")
+    void updateLocation2() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+        MemberPreferenceRegionRequest request = MemberPreferenceRegionRequest.builder()
+            .location_ids(List.of(1L, 2L, 2L))
+            .build();
+
+        // when
+        Member resultMember = memberService.updatePreferenceLocation(
+            new MemberAuthDto(member.getId()), request);
+        Set<MemberPreference> preferences = memberPreferenceRepository.findAllByMember(resultMember);
+
+        // then
+        assertNotNull(resultMember);
+        assertEquals(preferences.size(), 2);
+
+    }
+
+    @Test
+    @DisplayName("회원의 선호 지역 변경 - 변경된 지역이 추가 되는 경우")
+    void updateLocation3() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+        MemberPreferenceRegionRequest request = MemberPreferenceRegionRequest.builder()
+            .location_ids(List.of(1L, 2L))
+            .build();
+        MemberPreferenceRegionRequest request2 = MemberPreferenceRegionRequest.builder()
+            .location_ids(List.of(1L, 2L, 3L))
+            .build();
+
+        // when
+        memberService.updatePreferenceLocation(new MemberAuthDto(member.getId()), request);
+        Member resultMember = memberService.updatePreferenceLocation(
+            new MemberAuthDto(member.getId()), request2);
+
+        // then
+        assertNotNull(resultMember);
+
+        MemberPreferencesResponse preferences = memberService.getPreferences(
+            new MemberAuthDto(member.getId()));
+        assertEquals(preferences.getPreference_workspace_regions().size(), 3);
+    }
+
+    @Test
+    @DisplayName("회원의 선호 지역 변경 - 변경된 지역이 삭제 되는 경우")
+    void updateLocation4() {
+        // given
+        Member member = memberRepository.save(Member.builder()
+                .build());
+        MemberPreferenceRegionRequest request = MemberPreferenceRegionRequest.builder()
+            .location_ids(List.of(1L, 2L, 3L))
+            .build();
+        MemberPreferenceRegionRequest request2 = MemberPreferenceRegionRequest.builder()
+            .location_ids(List.of(1L, 2L))
+            .build();
+
+        // when
+        memberService.updatePreferenceLocation(new MemberAuthDto(member.getId()), request);
+        Member resultMember = memberService.updatePreferenceLocation(
+            new MemberAuthDto(member.getId()), request2);
+
+        // then
+        assertNotNull(resultMember);
+
+        MemberPreferencesResponse preferences = memberService.getPreferences(
+            new MemberAuthDto(member.getId()));
+        assertEquals(preferences.getPreference_workspace_regions().size(), 2);
+    }
 }
