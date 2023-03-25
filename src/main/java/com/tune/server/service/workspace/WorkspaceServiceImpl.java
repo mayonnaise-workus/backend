@@ -80,7 +80,11 @@ public class WorkspaceServiceImpl implements WorkspaceService {
             }
         }
 
-        return List.copyOf(workspaceList);
+        // 랜덤하게 섞은 후 return
+        List<WorkspaceListResponse> list = new ArrayList<>(workspaceList);
+        Collections.shuffle(list);
+
+        return list;
     }
 
     @Override
